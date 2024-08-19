@@ -82,7 +82,7 @@
 							<li><a href="#" class="collapsed" data-toggle="collapse" data-target="#login-form">Login <i class="sub-indicator fa fa-chevron-circle-down fa-fw text-muted"></i></a></li>
 						</ul><!-- .navbar-login -->
 						<div id="login-form" class="login-form collapse fade clearfix">
-            {!!  Form::open(['action'=>'Auth\AuthController@postLogin', 'method'=>'post']) !!}
+            {!!  Form::open(['route' => 'post.login']) !!}
 
 			<div class="form-group has-feedback {{ $errors->has('email') ? 'has-error' : '' }}">
 				{!! Form::text('email',null,['placeholder'=>'Email','class' => 'form-control']) !!}
@@ -175,7 +175,7 @@ $footer4 = App\Model\helpdesk\Theme\Footer4::whereId('1')->first();
 					<div class="col-md-3">
 						<div class="widget-area">
 							<section id="section-about" class="section">
-								<h2 class="section-title h4 clearfix">{!!$footer->title!!}</h2>
+								<h2 class="section-line h4 clearfix">{!!$footer->title!!}</h2>
 								<div class="textwidget">
 									<p>{!!$footer->footer!!}</p>
 								</div>

@@ -8,6 +8,121 @@
                                           | |                         
                                           |_|                         
 |=====================================================
+| v2.0.3 Added Unit Test cases
+|=====================================================
+
+### Updates
+- Fixes #8188 (Integrate with Jenkin & Codacy)
+- Fixes #8245 (Added Arabic Language support)
+
+### Bug Fixes
+- Fixes #8213
+- Fixes #8180
+- Fixes #727
+- Fixes #566
+- Fixes #697
+
+
+|=====================================================
+| v2.0.2 Theme Update and Clockwork Feature Addition
+|=====================================================
+"This release updates the theme to the latest version, enhancing the UI design of the system while maintaining the same user experience."
+
+## Updates ##
+- Updated jQuery version to v3.6.3.
+- Updated Bootstrap version to v5.
+- Updated AdminLTE theme to v3.2.0.
+- Added the clock-work debugging feature.
+
+## Bugfixes ##
+- Fixed an issue where selecting a custom field in the create ticket would result in a 500 error.
+- Addressed XSS injection vulnerability.
+- Resolved internal server error when no user with a mobile number exists.
+- Fixed the issue where the token value was made public during the ticket creation via API v1.
+- Added SECURITY.md
+
+## Changes logs ##
+- Jquery version v3.6.3
+- Bootstrap version V5
+
+|=====================================================
+| v2.0.1 Minor Bug Fixes
+|=====================================================
+### Bug Fixes
+- Fixes #8006 (Faveo Api Install Issue)
+- Fixes #8106 (Faveo-Helpdesk Community Edition - CLI install fails (GUI install is fine))
+- Fixes #8114 (When we click on the register button and categories button getting the below error.)
+- Fixes #8068
+
+### Change Logs
+- Updated Bugnag Key
+
+|=====================================================
+| v2.0.0 Laravel Upgrade, PHP 8.1, Mysql 8 and InnoDB
+|=====================================================
+
+#### Updates
+- We updated Laravel, PHP, and Mysql versions.
+- We included a Manual update feature too.
+
+#### Steps to Manual Update
+- Replace or Rebase the code in an existing file path
+- Update the Php version to 8.1
+- Run "**_composer dump-autoload_**"
+- Then run "**_php artisan database:sync_**"
+- Now your application updated to our latest version
+
+**Change Logs**
+- Php 8.1 supports
+- Laravel 9 supports
+- Mysql 8 supports
+- InnoDB driver supports
+
+|=====================================================
+| v1.11.1 Urgent security patch
+|=====================================================
+This release is a patch update for the high-level security risk found and reported by [Shahrir Shafie](https://www.linkedin.com/in/shahrir-shafie-884293117) in the vulnerable API endpoints.
+
+We categorized this vulnerability as a Severe level issue and recommend everyone to update the system ASAP.
+
+Follow this [Upgrade Guide](https://github.com/ladybirdweb/faveo-helpdesk/wiki/General-Faveo-Upgrade-Guide---Manual) to update your system. 
+
+> Note the issue is affecting all the older version of the system, if in any case you are not able to update the system, we request you to get in touch with support and get your system patched.
+
+|=====================================================
+| v1.11.0 Urgent security patch and theme update
+|=====================================================
+This is an urgent patch for several security vulnerabilities found and reported by [Securized](https://github.com/securized) in the system. We highly recommend updating the system to get rid of all the security issues in your system and secure your system from vulnerabilities and attackers.
+
+Along with some urgent security updates, this release also updates the frontend framework and theme version to the latest which enhances the UI design of the system, keeping the same user experience.
+
+#### Updates
+- Updated jQuery version to v3
+- Updated Bootstrap version to v4
+- Updated AdminLTE theme to v3
+- Updated Russian translation to cover 80% of the system. Thanks, @maranqz for raising the PR and providing proper translation files.
+
+#### Bugfixes
+- Various UI bugs and issues
+- Generate PDF error
+- Laravel route middleware grouping correction
+- Storage option functionality corrections
+- Clients are not able to change ticket status
+- Report PDF generation
+- Security issues reported by @securized. More details can be found on their [gist](https://gist.github.com/securized/7c702ca002d3d72f3100bc5eb17ec0dd)
+
+**Important**: The system was not generating the unique APP_KEY in the environment which makes your system vulnerable to expose sensitive data due to a hardcoded encryption key. This can simply be fixed by generating your own Laravel APP_KEY using Laravel's artisan commands. 
+Faveo also introduced its own artisan command to alter the APP_KEY to replace your old key with the new key. The advantage of this command is it allows you to update the application's key and updates the required encrypted data in the system so you do not need to update configurations in the system manually. But we still recommend you update system configurations manually to minimize the possibility of attacks on your data. You can use this command from your Faveo root directory as below
+```
+php artisan faveo:secure-key
+```
+
+> NOTE: This security patch requires all agents and admin to login and start their session again. Also, all the old encrypted URLs will be reset and will not work any longer.
+
+Follow this [Upgrade Guide](https://github.com/ladybirdweb/faveo-helpdesk/wiki/General-Faveo-Upgrade-Guide---Manual) to update your system. This update does not require any database update. After the update, we highly recommend running the below commands to secure your Faveo system.
+`php artisan key:generate` or `php artisan faveo:secure-key`
+ 
+|=====================================================
 | v1.10.7 Security patch
 |=====================================================
 - Updates symfony/http-foundation to 4.4.1

@@ -102,12 +102,12 @@ class FilterControllerOld extends Controller
                                 ->whereIn('ticket_status.state', ['closed']);
                     });
             case '/ticket/myticket':
-                    return $table
-                      ->leftJoin('ticket_status', function ($join) {
-                          $join->on('ticket_status.id', '=', 'tickets.status');
-                      })
-                    ->orWhere('tickets.assigned_to', '=', Auth::user()->id)
-                    ->where('tickets.status', '=', 1);
+                return $table
+                  ->leftJoin('ticket_status', function ($join) {
+                      $join->on('ticket_status.id', '=', 'tickets.status');
+                  })
+                ->orWhere('tickets.assigned_to', '=', Auth::user()->id)
+                ->where('tickets.status', '=', 1);
             case '/unassigned':
                 if (Auth::user()->role == 'agent') {
                     $id = Auth::user()->primary_dpt;
@@ -126,17 +126,17 @@ class FilterControllerOld extends Controller
                     $table = $table->where('tickets.dept_id', '=', $id);
                 }
 
-                  return $table
-                    ->leftJoin('ticket_status', function ($join) {
-                        $join->on('ticket_status.id', '=', 'tickets.status');
-                    })
-                    ->where('tickets.status', '=', 1)
-                    ->where('tickets.isanswered', '=', 0)
-                    ->whereNotNull('tickets.duedate')
-                    ->where('tickets.duedate', '!=', '00-00-00 00:00:00')
+                return $table
+                  ->leftJoin('ticket_status', function ($join) {
+                      $join->on('ticket_status.id', '=', 'tickets.status');
+                  })
+                  ->where('tickets.status', '=', 1)
+                  ->where('tickets.isanswered', '=', 0)
+                  ->whereNotNull('tickets.duedate')
+                  ->where('tickets.duedate', '!=', '00-00-00 00:00:00')
 
-                    // ->where('duedate','>',\Carbon\Carbon::now());
-                    ->where('tickets.duedate', '<', \Carbon\Carbon::now());
+                  // ->where('duedate','>',\Carbon\Carbon::now());
+                  ->where('tickets.duedate', '<', \Carbon\Carbon::now());
             case '/ticket/approval/closed':
                 if (Auth::user()->role == 'agent') {
                     $id = Auth::user()->primary_dpt;
@@ -203,14 +203,14 @@ class FilterControllerOld extends Controller
                     $table = $table->where('tickets.dept_id', '=', $id);
                 }
 
-               return $table
-                    ->leftJoin('ticket_status', function ($join) {
-                        $join->on('ticket_status.id', '=', 'tickets.status');
-                    })
-                    ->where('tickets.status', '=', 1)
+                return $table
+                     ->leftJoin('ticket_status', function ($join) {
+                         $join->on('ticket_status.id', '=', 'tickets.status');
+                     })
+                     ->where('tickets.status', '=', 1)
 
-                    ->whereNotNull('tickets.duedate')
-                    ->whereDate('tickets.duedate', '=', \Carbon\Carbon::now()->format('Y-m-d'));
+                     ->whereNotNull('tickets.duedate')
+                     ->whereDate('tickets.duedate', '=', \Carbon\Carbon::now()->format('Y-m-d'));
 
             case '/ticket/followup':
                 if (Auth::user()->role == 'agent') {
@@ -265,12 +265,14 @@ class FilterControllerOld extends Controller
                         DB::raw('COUNT(ticket_collaborator.ticket_id) as countcollaborator'),
                         'tickets.status',
                         'tickets.user_id',
-                        'tickets.priority_id', 'tickets.assigned_to',
+                        'tickets.priority_id',
+                        'tickets.assigned_to',
                         'ticket_status.name as tickets_status',
                         'ticket_source.css_class as css',
                         DB::raw('substring_index(group_concat(ticket_thread.poster order by ticket_thread.id desc) , ",", 1) as last_replier'),
                         DB::raw('substring_index(group_concat(ticket_thread.title order by ticket_thread.id asc) , ",", 1) as ticket_title'),
-                        'u.active as verified')
+                        'u.active as verified'
+                    )
                     ->groupby('tickets.id');
 
         return $tickets;
@@ -313,9 +315,9 @@ class FilterControllerOld extends Controller
     /**
      *@category function to format and return user tickets
      *
-     *@param string $segment
+     * @param string $segment
      *
-     *@return builder
+     * @return builder
      */
     public function formatUserTickets($segment)
     {

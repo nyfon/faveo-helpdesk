@@ -6,22 +6,18 @@ namespace App\Http\Controllers\Agent\kb;
 use App\Http\Controllers\Agent\helpdesk\TicketController;
 use App\Http\Controllers\Controller;
 // Request
-use App\Http\Requests\kb\ProfilePassword;
-use App\Http\Requests\kb\ProfileRequest;
 use App\Http\Requests\kb\SettingsRequests;
 use App\Model\helpdesk\Utility\Date_format;
 // Model
 use App\Model\helpdesk\Utility\Timezones;
 use App\Model\kb\Comment;
 use App\Model\kb\Settings;
-use Auth;
 // Classes
 use Config;
 use Exception;
-use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request as Input;
 use Image;
-use Input;
 use Lang;
 
 /**
@@ -46,7 +42,7 @@ class SettingsController extends Controller
         // checking authentication
         $this->middleware('auth');
         // checking roles
-        $this->middleware('roles');
+        $this->middleware('role.agent');
         $this->language();
     }
 
@@ -163,7 +159,7 @@ class SettingsController extends Controller
                         })
 
                         ->addColumn('Actions', function ($model) {
-                            return '<div class="row"><div class="col-md-12"><a href=comment/delete/'.$model->id.' class="btn btn-danger btn-xs">'.\Lang::get('lang.delete').'</a></div><div class="col-md-12"><a href=published/'.$model->id.' class="btn btn-warning btn-xs">'.\Lang::get('lang.publish').'</a></div></div>';
+                            return '<div class="row"><a href=comment/delete/'.$model->id.' class="btn btn-danger btn-xs">'.\Lang::get('lang.delete').'</a>&nbsp;<a href=published/'.$model->id.' class="btn btn-warning btn-xs">'.\Lang::get('lang.publish').'</a></div>';
                         })
                         ->make();
     }
@@ -171,7 +167,7 @@ class SettingsController extends Controller
     /**
      * Admin can publish the comment.
      *
-     * @param type         $id
+     * @param type $id
      * @param type Comment $comment
      *
      * @return bool
@@ -190,7 +186,7 @@ class SettingsController extends Controller
     /**
      * delete the comment.
      *
-     * @param type         $id
+     * @param type $id
      * @param type Comment $comment
      *
      * @return type
@@ -202,85 +198,6 @@ class SettingsController extends Controller
             return redirect('comment')->with('success', $comment->name."'s!".Lang::get('lang.comment_deleted'));
         } else {
             return redirect('comment')->with('fails', Lang::get('lang.can_not_process'));
-        }
-    }
-
-    /**
-     * get profile page.
-     *
-     * @return type view
-     */
-    public function getProfile()
-    {
-        $time = Timezone::all();
-        $user = Auth::user();
-
-        return view('themes.default1.agent.kb.settings.profile', compact('user', 'time'));
-    }
-
-    /**
-     * Post profile page.
-     *
-     * @param type ProfileRequest $request
-     *
-     * @return type redirect
-     */
-    public function postProfile(ProfileRequest $request)
-    {
-        $user = Auth::user();
-        $user->gender = $request->input('gender');
-        $user->save();
-        if (is_null($user->profile_pic)) {
-            if ($request->input('gender') == 1) {
-                $name = 'avatar5.png';
-                $destinationPath = 'lb-faveo/dist/img';
-                $user->profile_pic = $name;
-            } elseif ($request->input('gender') == 0) {
-                $name = 'avatar2.png';
-                $destinationPath = 'lb-faveo/dist/img';
-                $user->profile_pic = $name;
-            }
-        }
-        if (Input::file('profile_pic')) {
-            //$extension = Input::file('profile_pic')->getClientOriginalExtension();
-            $name = Input::file('profile_pic')->getClientOriginalName();
-            $destinationPath = 'lb-faveo/dist/img';
-            $fileName = rand(0000, 9999).'.'.$name;
-            //echo $fileName;
-            Input::file('profile_pic')->move($destinationPath, $fileName);
-            $user->profile_pic = $fileName;
-        } else {
-            $user->fill($request->except('profile_pic', 'gender'))->save();
-
-            return redirect()->back()->with('success1', 'Profile Updated sucessfully');
-        }
-        if ($user->fill($request->except('profile_pic'))->save()) {
-            return redirect('profile')->with('success1', 'Profile Updated sucessfully');
-        } else {
-            return redirect('profile')->with('fails1', 'Profile Not Updated sucessfully');
-        }
-    }
-
-    /**
-     * post profile password.
-     *
-     * @param type                 $id
-     * @param type ProfilePassword $request
-     *
-     * @return type redirect
-     */
-    public function postProfilePassword($id, ProfilePassword $request)
-    {
-        $user = Auth::user();
-        //echo $user->password;
-
-        if (Hash::check($request->input('old_password'), $user->getAuthPassword())) {
-            $user->password = Hash::make($request->input('new_password'));
-            $user->save();
-
-            return redirect('profile')->with('success2', 'Password Updated sucessfully');
-        } else {
-            return redirect('profile')->with('fails2', 'Old password Wrong');
         }
     }
 

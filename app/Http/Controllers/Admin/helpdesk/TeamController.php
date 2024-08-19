@@ -114,7 +114,7 @@ class TeamController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param type                   $id
+     * @param type $id
      * @param type User              $user
      * @param type Assign_team_agent $assign_team_agent
      * @param type Teams             $team
@@ -200,7 +200,7 @@ class TeamController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param type                   $id
+     * @param type $id
      * @param type User              $user
      * @param type Assign_team_agent $assign_team_agent
      * @param type Teams             $team
@@ -220,7 +220,7 @@ class TeamController extends Controller
             // dd($a_id);
             $user = $user->whereIn('id', $a_id)->where('active', '=', 1)->orderBy('first_name')->get();
             // dd($user);
-            return view('themes.default1.admin.helpdesk.agent.teams.edit', compact('agent_id', 'user', 'teams', 'allagents'));
+            return view('themes.default1.admin.helpdesk.agent.teams.edit', compact('agent_id', 'user', 'teams'));
         } catch (Exception $e) {
             return redirect()->back()->with('fails', $e->getMessage());
         }

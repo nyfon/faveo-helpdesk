@@ -22,7 +22,7 @@ class Finder
      * DEPARTMENT
      * This function is used for returning department name with respect to id.
      *
-     * @param $id type int
+     * @param $id     type int
      * @param $custom type array/null
      *
      * @return type string
@@ -42,7 +42,7 @@ class Finder
      * GROUP
      * This function is used for returning group name with respect to id.
      *
-     * @param $id type int
+     * @param $id     type int
      * @param $custom type array/null
      *
      * @return type string
@@ -62,7 +62,7 @@ class Finder
      * STATUS TYPE
      * This function is used for returning status type name with respect to id.
      *
-     * @param $id type int
+     * @param $id     type int
      * @param $custom type array/null
      *
      * @return type string
@@ -82,7 +82,7 @@ class Finder
      * STATUS
      * This function is used for returning status name with respect to id.
      *
-     * @param $id type int
+     * @param $id     type int
      * @param $custom type array/null
      *
      * @return type string
@@ -116,25 +116,25 @@ class Finder
     public static function rolesGroup($id)
     {
         switch ($id) {
-                case null:
-                        return \Lang::get('lang.none');
-                case 1:
-                        return 'Client';
-                case 2:
-                        return 'Agent';
-                case 4:
-                        return 'Admin';
-                case 3:
-                        return 'Client,Agent';
-                case 5:
-                        return 'Client,Admin';
-                case 6:
-                        return 'Agent,Admin';
-                case 7:
-                        return 'Client,Agent,Admin';
-                default:
-                        return 'Undefined!';
-                }
+            case null:
+                return \Lang::get('lang.none');
+            case 1:
+                return 'Client';
+            case 2:
+                return 'Agent';
+            case 4:
+                return 'Admin';
+            case 3:
+                return 'Client,Agent';
+            case 5:
+                return 'Client,Admin';
+            case 6:
+                return 'Agent,Admin';
+            case 7:
+                return 'Client,Agent,Admin';
+            default:
+                return 'Undefined!';
+        }
     }
 
     /**

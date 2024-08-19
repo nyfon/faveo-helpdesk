@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Admin\helpdesk;
 
 // controllers
 use App\Http\Controllers\Controller;
-// requests
 use App\Http\Requests\helpdesk\CompanyRequest;
+// requests
 use App\Http\Requests\helpdesk\EmailRequest;
 use App\Http\Requests\helpdesk\Job\TaskRequest;
 use App\Http\Requests\helpdesk\RatingUpdateRequest;
 use App\Http\Requests\helpdesk\StatusRequest;
-// models
 use App\Http\Requests\helpdesk\SystemRequest;
+// models
 use App\Model\helpdesk\Agent\Department;
 use App\Model\helpdesk\Email\Emails;
 use App\Model\helpdesk\Email\Template;
@@ -32,13 +32,14 @@ use App\Model\helpdesk\Utility\Date_time_format;
 use App\Model\helpdesk\Utility\Time_format;
 use App\Model\helpdesk\Utility\Timezones;
 use App\Model\helpdesk\Workflow\WorkflowClose;
-// classes
 use DateTime;
+// classes
 use DB;
 use Exception;
 use File;
 use Illuminate\Http\Request;
-use Input;
+use Illuminate\Support\Facades\Request as Input;
+use Illuminate\Support\Str;
 use Lang;
 
 /**
@@ -62,7 +63,7 @@ class SettingsController extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -117,7 +118,7 @@ class SettingsController extends Controller
     /**
      * function to delete system logo.
      *
-     *  @return type string
+     * @return type string
      */
     public function deleteLogo()
     {
@@ -210,7 +211,7 @@ class SettingsController extends Controller
 
             if ($request->has('itil')) {
                 $itil = $request->input('itil');
-                $sett = CommonSettings::firstOrCreate(['option_name'=>'itil']);
+                $sett = CommonSettings::firstOrCreate(['option_name' => 'itil']);
                 $sett->status = $itil;
                 $sett->save();
             }
@@ -513,7 +514,7 @@ class SettingsController extends Controller
     /**
      * Update the specified alert in storage.
      *
-     * @param type         $id
+     * @param type $id
      * @param type Alert   $alert
      * @param type Request $request
      *
@@ -582,11 +583,11 @@ class SettingsController extends Controller
     /**
      *  Generate Api key.
      *
-     *  @return type json
+     * @return type json
      */
     public function generateApiKey()
     {
-        $key = str_random(32);
+        $key = Str::random(32);
 
         return $key;
     }
@@ -603,7 +604,7 @@ class SettingsController extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -623,7 +624,7 @@ class SettingsController extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -643,7 +644,7 @@ class SettingsController extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -762,7 +763,7 @@ class SettingsController extends Controller
     {
         $days = Input::get('no_of_days');
         if ($days == null) {
-            return redirect()->back()->with('fails', 'Please enter valid no of days');
+            return redirect()->back()->with('fails', \Illuminate\Support\Facades\Lang::get('lang.please_enter_valid_no_days'));
         }
         $date = new DateTime();
         $date->modify($days.' day');
@@ -779,7 +780,7 @@ class SettingsController extends Controller
     /**
      *  To display the list of ratings in the system.
      *
-     *  @return type View
+     * @return type View
      */
     public function RatingSettings()
     {
@@ -813,7 +814,7 @@ class SettingsController extends Controller
     /**
      *  To store rating data.
      *
-     *  @return type Redirect
+     * @return type Redirect
      */
     public function PostRatingSettings($id, Rating $ratings, RatingUpdateRequest $request)
     {
@@ -874,7 +875,7 @@ class SettingsController extends Controller
     /**
      *  To delete a type of rating.
      *
-     *  @return type Redirect
+     * @return type Redirect
      */
     public function RatingDelete($slug, \App\Model\helpdesk\Ratings\RatingRef $ratingrefs)
     {
@@ -886,17 +887,17 @@ class SettingsController extends Controller
 
     public function saveConditions()
     {
-        if (\Input::get('fetching-commands') && \Input::get('notification-commands')) {
-            $fetching_commands = \Input::get('fetching-commands');
-            $fetching_dailyAt = \Input::get('fetching-dailyAt');
-            $notification_commands = \Input::get('notification-commands');
-            $notification_dailyAt = \Input::get('notification-dailyAt');
-            $work_commands = \Input::get('work-commands');
-            $workflow_dailyAt = \Input::get('workflow-dailyAt');
+        if (Input::get('fetching-commands') && Input::get('notification-commands')) {
+            $fetching_commands = Input::get('fetching-commands');
+            $fetching_dailyAt = Input::get('fetching-dailyAt');
+            $notification_commands = Input::get('notification-commands');
+            $notification_dailyAt = Input::get('notification-dailyAt');
+            $work_commands = Input::get('work-commands');
+            $workflow_dailyAt = Input::get('workflow-dailyAt');
             $fetching_command = $this->getCommand($fetching_commands, $fetching_dailyAt);
             $notification_command = $this->getCommand($notification_commands, $notification_dailyAt);
             $work_command = $this->getCommand($work_commands, $workflow_dailyAt);
-            $jobs = ['fetching'=>$fetching_command, 'notification'=>$notification_command, 'work'=>$work_command];
+            $jobs = ['fetching' => $fetching_command, 'notification' => $notification_command, 'work' => $work_command];
             $this->storeCommand($jobs);
         }
     }
@@ -920,10 +921,10 @@ class SettingsController extends Controller
             }
         }
         if (count($array) > 0) {
-            foreach ($array as $key=>$save) {
+            foreach ($array as $key => $save) {
                 $command->create([
-                    'job'  => $key,
-                    'value'=> $save,
+                    'job'   => $key,
+                    'value' => $save,
                 ]);
             }
         }
@@ -1099,8 +1100,13 @@ class SettingsController extends Controller
     {
         try {
             $user = \App\User::select(
-                            'user_name', 'first_name', 'last_name', 'email', 'password', 'agent_tzone'
-                    )->where('id', '=', 1)->first();
+                'user_name',
+                'first_name',
+                'last_name',
+                'email',
+                'password',
+                'agent_tzone'
+            )->where('id', '=', 1)->first();
             $system = System::where('id', '=', 1)->first();
             \Schema::disableForeignKeyConstraints();
             $tableNames = \Schema::getConnection()->getDoctrineSchemaManager()->listTableNames();
@@ -1123,16 +1129,16 @@ class SettingsController extends Controller
             DB::commit();
             \Artisan::call('db:seed', ['--force' => true]);
             $user2 = \App\User::updateOrCreate(['id' => 1], [
-                        'first_name'   => $user->first_name,
-                        'last_name'    => $user->last_name,
-                        'email'        => $user->email,
-                        'user_name'    => $user->user_name,
-                        'password'     => $user->password,
-                        'assign_group' => 1,
-                        'primary_dpt'  => 1,
-                        'active'       => 1,
-                        'agent_tzone'  => $user->agent_tzone,
-                        'role'         => 'admin',
+                'first_name'   => $user->first_name,
+                'last_name'    => $user->last_name,
+                'email'        => $user->email,
+                'user_name'    => $user->user_name,
+                'password'     => $user->password,
+                'assign_group' => 1,
+                'primary_dpt'  => 1,
+                'active'       => 1,
+                'agent_tzone'  => $user->agent_tzone,
+                'role'         => 'admin',
             ]);
             $system2 = System::find(1);
             $system2->time_zone = $system->time_zone;

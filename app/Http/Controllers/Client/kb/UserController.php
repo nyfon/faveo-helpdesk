@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Client\kb;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\kb\CommentRequest;
 use App\Http\Requests\kb\ContactRequest;
-use App\Http\Requests\kb\ProfilePassword;
 use App\Http\Requests\kb\SearchRequest;
 use App\Model\kb\Article;
 use App\Model\kb\Category;
@@ -18,7 +16,6 @@ use App\Model\kb\Settings;
 use Auth;
 // use Creativeorange\Gravatar\Gravatar;
 use Config;
-use Hash;
 use Illuminate\Http\Request;
 use Lang;
 use Mail;
@@ -50,7 +47,7 @@ class UserController extends Controller
         $article->setPath('article-list');
         $categorys = $category->get();
 
-        return view('themes.default1.client.kb.article-list.articles', compact('time', 'categorys', 'article'));
+        return view('themes.default1.client.kb.article-list.articles', compact('categorys', 'article'));
     }
 
     /**
@@ -92,9 +89,9 @@ class UserController extends Controller
         $pagination = $settings->pagination;
         $search = $request->input('s');
         $result = $article->where('name', 'LIKE', '%'.$search.'%')
-                ->orWhere('slug', 'LIKE', '%'.$search.'%')
-                ->orWhere('description', 'LIKE', '%'.$search.'%')
-                ->paginate($pagination);
+            ->orWhere('slug', 'LIKE', '%'.$search.'%')
+            ->orWhere('description', 'LIKE', '%'.$search.'%')
+            ->paginate($pagination);
         $result->setPath('search?s='.$search);
         $categorys = $category->get();
 
@@ -127,7 +124,7 @@ class UserController extends Controller
         if ($arti) {
             return view('themes.default1.client.kb.article-list.show', compact('arti'));
         } else {
-            return redirect('404');
+            return Redirect::back()->with('fails', Lang::get('lang.sorry_not_processed'));
         }
     }
 
@@ -153,11 +150,14 @@ class UserController extends Controller
         if (Config::get('database.install') == '%0%') {
             return redirect('step1');
         } else {
-            //$categorys = $category->get();
             $categorys = $category->get();
             // $categorys->setPath('home');
             /* direct to view with $article_id */
-            return view('themes.default1.client.kb.article-list.home', compact('categorys', 'article_id'));
+            $page = Relationship::where('category_id', '=', $category->id)->get();
+            /* from whole attribute pick the article_id */
+            $articles_id = $page->pluck('article_id');
+
+            return view('themes.default1.client.kb.article-list.home', compact('categorys', 'articles_id'));
         }
     }
 
@@ -230,14 +230,30 @@ class UserController extends Controller
      *
      * @return type response
      */
-    public function postComment($slug, Article $article, CommentRequest $request, Comment $comment)
+    public function postComment($slug, Article $article, Request $request, Comment $comment)
     {
+        $request->validate([
+            'comment' => 'required',
+        ]);
+
         $article = $article->where('slug', $slug)->first();
         if (!$article) {
-            return Redirect::back()->with('fails', Lang::get('lang.sorry_not_processed'));
+            return response()->json(['success' => false, 'message' => Lang::get('lang.sorry_not_processed')]);
         }
-        $id = $article->id;
-        $comment->article_id = $id;
+
+        $comment->article_id = $article->id;
+
+        if (Auth::check()) {
+            // Associate the comment with the authenticated user
+            $comment->article_id = Auth::id();
+            $comment->name = Auth::user()->first_name.' '.Auth::user()->last_name;
+        } else {
+            // Set default values for non-authenticated user
+            $comment->name = $request->input('name');
+            $comment->email = $request->input('email');
+            $comment->website = $request->input('website');
+        }
+
         if ($comment->fill($request->input())->save()) {
             return Redirect::back()->with('success', Lang::get('lang.your_comment_posted'));
         } else {
@@ -247,7 +263,16 @@ class UserController extends Controller
 
     public function getPage($name, Page $page)
     {
-        $page = $page->where('slug', $name)->first();
+        $page = $page->where('slug', $name);
+
+        if (!Auth::check() || \Auth::user()->role == 'user') {
+            $page = $page
+                    ->where(['status' => 1, 'visibility'=>1])
+                    ->first();
+        } else {
+            $page = $page->where('status', 1)->first();
+        }
+
         if ($page) {
             return view('themes.default1.client.kb.article-list.pages', compact('page'));
         } else {
@@ -292,7 +317,11 @@ class UserController extends Controller
         $categorys = $category->get();
         // $categorys->setPath('home');
         /* direct to view with $article_id */
-        return view('themes.default1.client.kb.article-list.categoryList', compact('categorys', 'article_id'));
+        $page = Relationship::where('category_id', '=', $category->id)->get();
+        /* from whole attribute pick the article_id */
+        $articles_id = $page->pluck('article_id');
+
+        return view('themes.default1.client.kb.article-list.categoryList', compact('categorys', 'articles_id'));
     }
 
     // static function timezone($utc) {
@@ -308,59 +337,4 @@ class UserController extends Controller
     // 	return $date;
     // 	//return substr($date, 0, -6);
     // }
-
-    public function clientProfile()
-    {
-        $user = Auth::user();
-
-        return view('themes.default1.client.kb.article-list.profile', compact('user'));
-    }
-
-    public function postClientProfile($id, ProfileRequest $request)
-    {
-        $user = Auth::user();
-        $user->gender = $request->input('gender');
-        $user->save();
-        if ($user->profile_pic == 'avatar5.png' || $user->profile_pic == 'avatar2.png') {
-            if ($request->input('gender') == 1) {
-                $name = 'avatar5.png';
-                $destinationPath = 'lb-faveo/dist/img';
-                $user->profile_pic = $name;
-            } elseif ($request->input('gender') == 0) {
-                $name = 'avatar2.png';
-                $destinationPath = 'lb-faveo/dist/img';
-                $user->profile_pic = $name;
-            }
-        }
-        if (Input::file('profile_pic')) {
-            //$extension = Input::file('profile_pic')->getClientOriginalExtension();
-            $name = Input::file('profile_pic')->getClientOriginalName();
-            $destinationPath = 'lb-faveo/dist/img';
-            $fileName = rand(0000, 9999).'.'.$name;
-            //echo $fileName;
-            Input::file('profile_pic')->move($destinationPath, $fileName);
-            $user->profile_pic = $fileName;
-        } else {
-            $user->fill($request->except('profile_pic', 'gender'))->save();
-
-            return redirect('guest')->with('success', Lang::get('lang.profile_updated_sucessfully'));
-        }
-        if ($user->fill($request->except('profile_pic'))->save()) {
-            return redirect('guest')->with('success', Lang::get('lang.sorry_not_proprofile_updated_sucessfullycessed'));
-        }
-    }
-
-    public function postClientProfilePassword($id, ProfilePassword $request)
-    {
-        $user = Auth::user();
-        //echo $user->password;
-        if (Hash::check($request->input('old_password'), $user->getAuthPassword())) {
-            $user->password = Hash::make($request->input('new_password'));
-            $user->save();
-
-            return redirect()->back()->with('success', Lang::get('lang.password_updated_sucessfully'));
-        } else {
-            return redirect()->back()->with('fails', Lang::get('lang.password_was_not_updated'));
-        }
-    }
 }

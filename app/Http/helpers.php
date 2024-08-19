@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 function loging($context, $message, $level = 'error', $array = [])
 {
     \Log::$level($message.':-:-:-'.$context, $array);
@@ -30,14 +32,14 @@ function mime($type)
             $type == 'image/gif' ||
            // $type == "application/octet-stream" ||
             $type == 'image/png' ||
-            starts_with($type, 'image')) {
+            Str::startsWith($type, 'image')) {
         return 'image';
     }
 }
 
 function removeUnderscore($string)
 {
-    if (str_contains($string, '_') === true) {
+    if (Str::contains($string, '_') === true) {
         $string = str_replace('_', ' ', $string);
     }
 
@@ -124,7 +126,7 @@ function isInstall()
 {
     $check = false;
     $env = base_path('.env');
-    if (\File::exists($env) && \Config::get('database.install') == 1) {
+    if (\File::exists($env) && env('DB_INSTALL') == 1) {
         $check = true;
     }
 
@@ -229,13 +231,13 @@ function timezone()
  * formats the error message into json error response.
  *
  * @param string/array $errorMsg     errorMsg can be an array of errors or string
- * @param int          $responseCode
+ * @param int $responseCode
  *
  * @return json
  */
 function errorResponse($errorMsg, $responseCode = 400)
 {
-    $response = ['success'=>false, 'message'=>$errorMsg];
+    $response = ['success' => false, 'message' => $errorMsg];
 
     return response()->json($response, $responseCode);
 }
@@ -243,15 +245,15 @@ function errorResponse($errorMsg, $responseCode = 400)
 /**
  * formats success message/data into json success response.
  *
- * @param string       $successMsg
+ * @param string $successMsg
  * @param array/string $data         data of the response
- * @param int          $responseCode
+ * @param int $responseCode
  *
  * @return json
  */
 function successResponse($successMsg = '', $data = '', $responseCode = 200)
 {
-    $response = !$successMsg ? ['success'=>true, 'data'=>$data] : (!$data ? ['success'=>true, 'message'=>$successMsg] : ['success'=>true, 'message'=>$successMsg, 'data'=>$data]);
+    $response = !$successMsg ? ['success' => true, 'data' => $data] : (!$data ? ['success' => true, 'message' => $successMsg] : ['success' => true, 'message' => $successMsg, 'data' => $data]);
 
     return response()->json($response);
 }
@@ -263,13 +265,13 @@ function successResponse($successMsg = '', $data = '', $responseCode = 200)
  *
  * @return Response with json response content
  */
-function exceptionResponse(\Exception $exception)
+function exceptionResponse(Exception $exception)
 {
     return errorResponse([
-            'file'       => $exception->getFile(),
-            'line_number'=> $exception->getLine(),
-            'exception'  => $exception->getMessage(),
-        ], 500);
+        'file'        => $exception->getFile(),
+        'line_number' => $exception->getLine(),
+        'exception'   => $exception->getMessage(),
+    ], 500);
 }
 
 /**

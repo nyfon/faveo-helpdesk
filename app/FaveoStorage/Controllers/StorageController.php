@@ -12,17 +12,29 @@ use Storage;
 class StorageController extends Controller
 {
     protected $default;
+
     protected $driver;
+
     protected $root;
+
     protected $s3_key;
+
     protected $s3_region;
+
     protected $s3_secret;
+
     protected $s3_bucket;
+
     protected $rackspace_key;
+
     protected $rackspace_region;
+
     protected $rackspace_username;
+
     protected $rackspace_container;
+
     protected $rackspace_endpoint;
+
     protected $rackspace_url_type;
 
     public function __construct()
@@ -135,13 +147,13 @@ class StorageController extends Controller
         foreach ($config as $key => $con) {
             if (is_array($con)) {
                 foreach ($con as $k => $v) {
-                    Config::set("filesystem.$key.$k", $v);
+                    Config::set("filesystems.$key.$k", $v);
                 }
             }
-            Config::set("filesystem.$key", $con);
+            Config::set("filesystems.$key", $con);
         }
 
-        return Config::get('filesystem');
+        return Config::get('filesystems');
     }
 
     protected function config()
@@ -192,7 +204,7 @@ class StorageController extends Controller
         if ($this->default !== 'database') {
             $this->setFileSystem();
             Storage::disk($this->default)->put($filename, $data);
-            $storagePath = Storage::disk($this->default)->getDriver()->getAdapter()->getPathPrefix().$filename;
+            $storagePath = Storage::disk($this->default)->path($filename);
             if (mime(\File::mimeType($storagePath)) != 'image' || mime(\File::extension($storagePath)) != 'image') {
                 chmod($storagePath, 1204);
             }

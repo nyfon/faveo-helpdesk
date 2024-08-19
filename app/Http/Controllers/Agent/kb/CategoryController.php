@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Agent\kb;
 // Controllers
 use App\Http\Controllers\Agent\helpdesk\TicketController;
 use App\Http\Controllers\Controller;
-// Requests
 use App\Http\Requests\kb\CategoryRequest;
+// Requests
 use App\Http\Requests\kb\CategoryUpdate;
-// Model
 use App\Model\kb\Category;
+// Model
 use App\Model\kb\Relationship;
-// Classes
 use Datatable;
+// Classes
 use Exception;
+use Illuminate\Support\Str;
 use Lang;
 use Redirect;
 
@@ -39,7 +40,7 @@ class CategoryController extends Controller
         // checking authentication
         $this->middleware('auth');
         // checking roles
-        $this->middleware('roles');
+        $this->middleware('role.agent');
         SettingsController::language();
     }
 
@@ -78,7 +79,7 @@ class CategoryController extends Controller
                         ->addColumn('name', function ($model) {
                             $string = strip_tags($model->name);
 
-                            return str_limit($string, 20);
+                            return Str::limit($string, 20);
                         })
                         /* add column Created */
                         ->addColumn('Created', function ($model) {
@@ -94,14 +95,14 @@ class CategoryController extends Controller
         			<div class="modal-dialog">
             			<div class="modal-content">
                 			<div class="modal-header">
+                                <h4 class="modal-title">'.Lang::get('lang.delete').'</h4>
                     			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    			<h4 class="modal-title">'.Lang::get('lang.are_you_sure_you_want_to_delete').'</h4>
                 			</div>
                 			<div class="modal-body">
-                				'.$model->name.'
+                				<span>'.Lang::get('lang.are_you_sure_you_want_to_delete').'</span>&nbsp;<b>'.$model->name.'</b>
                 			</div>
-                			<div class="modal-footer">
-                    			<button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="dismis2">'.Lang::get('lang.close').'</button>
+                			<div class="modal-footer justify-content-between">
+                    			<button type="button" class="btn btn-default" data-dismiss="modal" id="dismis2">'.Lang::get('lang.close').'</button>
                     			<a href="category/delete/'.$model->id.'"><button class="btn btn-danger">'.Lang::get('lang.delete').'</button></a>
                 			</div>
             			</div>
@@ -143,22 +144,22 @@ class CategoryController extends Controller
     {
         /* Get the whole request from the form and insert into table via model */
         $sl = $request->input('name');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
         $category->slug = $slug;
         // send success message to index page
         try {
             $category->fill($request->input())->save();
 
-            return Redirect::back()->with('success', Lang::get('lang.category_inserted_successfully'));
+            return redirect('category')->with('success', Lang::get('lang.category_inserted_successfully'));
         } catch (Exception $e) {
-            return Redirect::back()->with('fails', Lang::get('lang.category_not_inserted').'<li>'.$e->getMessage().'</li>');
+            return redirect('category')->with('fails', Lang::get('lang.category_not_inserted').'<li>'.$e->getMessage().'</li>');
         }
     }
 
     /**
      * Show the form for editing the specified category.
      *
-     * @param type          $slug
+     * @param type $slug
      * @param type Category $category
      *
      * @return type view
@@ -175,7 +176,7 @@ class CategoryController extends Controller
     /**
      * Update the specified Category in storage.
      *
-     * @param type                $slug
+     * @param type $slug
      * @param type Category       $category
      * @param type CategoryUpdate $request
      *
@@ -183,11 +184,10 @@ class CategoryController extends Controller
      */
     public function update($id, CategoryRequest $request)
     {
-
         /* Edit the selected category via id */
         $category = Category::where('id', $id)->first();
         $sl = $request->input('name');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
         /* update the values at the table via model according with the request */
         //redirct to index page with success message
         try {
@@ -204,7 +204,7 @@ class CategoryController extends Controller
     /**
      * Remove the specified category from storage.
      *
-     * @param type              $id
+     * @param type $id
      * @param type Category     $category
      * @param type Relationship $relation
      *

@@ -4,15 +4,15 @@ namespace App\Http\Controllers\Agent\kb;
 
 use App\Http\Controllers\Agent\helpdesk\TicketController;
 use App\Http\Controllers\Controller;
-// request
 use App\Http\Requests\kb\PageRequest;
-use App\Http\Requests\kb\PageUpdate;
+// request
 use App\Model\kb\Page;
-// Model
 use Datatable;
-// classes
+// Model
 use Exception;
+// classes
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Lang;
 
 /**
@@ -37,7 +37,7 @@ class PageController extends Controller
         // checking authentication
         $this->middleware('auth');
         // checking roles
-        $this->middleware('roles');
+        $this->middleware('role.agent');
         $this->page = $page;
         SettingsController::language();
     }
@@ -85,20 +85,20 @@ class PageController extends Controller
                         /* add column Actions */
                         /* there are action buttons and modal popup to delete a data column */
                         ->addColumn('Actions', function ($model) {
-                            return '<span  data-toggle="modal" data-target="#deletepage'.$model->id.'"><a href="#" ><button class="btn btn-danger btn-xs"></a> '.\Lang::get('lang.delete').'</button></span>&nbsp;<a href=page/'.$model->slug.'/edit class="btn btn-warning btn-xs">'.\Lang::get('lang.edit').'</a>&nbsp;<a href=pages/'.$model->slug.' class="btn btn-primary btn-xs">'.\Lang::get('lang.view').'</a>
+                            return '<span  data-toggle="modal" data-target="#deletepage'.$model->id.'"><a href="#" ><button class="btn btn-danger btn-xs"></a> '.\Lang::get('lang.delete').'</button></span>&nbsp;<a href=page/'.$model->id.'/edit class="btn btn-warning btn-xs">'.\Lang::get('lang.edit').'</a>&nbsp;<a href=pages/'.$model->slug.' class="btn btn-primary btn-xs">'.\Lang::get('lang.view').'</a>
 				<div class="modal fade" id="deletepage'.$model->id.'">
         			<div class="modal-dialog">
             			<div class="modal-content">
                 			<div class="modal-header">
+                                <h4 class="modal-title">'.Lang::get('lang.delete').'</h4>
                     			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    			<h4 class="modal-title">Are You Sure ?</h4>
                 			</div>
                 			<div class="modal-body">
-                				'.$model->name.'
+                			<span>'.Lang::get('lang.are_you_sure_you_want_to_delete').'</span>&nbsp;<b>'.$model->name.'</b> ?
                 			</div>
-                			<div class="modal-footer">
-	                    		<button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="dismis2">Close</button>
-    			                <a href="page/delete/'.$model->id.'"><button class="btn btn-danger">delete</button></a>
+                			<div class="modal-footer justify-content-between">
+	                    		<button type="button" class="btn btn-default" data-dismiss="modal" id="dismis2">'.Lang::get('lang.close').'</button>
+    			                <a href="page/delete/'.$model->id.'"><button class="btn btn-danger">'.Lang::get('lang.delete').'</button></a>
 			                </div>
 		            	</div>
 			        </div>
@@ -127,7 +127,7 @@ class PageController extends Controller
     public function store(PageRequest $request)
     {
         $sl = $request->input('name');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
         $this->page->slug = $slug;
 
         try {
@@ -149,7 +149,7 @@ class PageController extends Controller
     public function edit($slug)
     {
         try {
-            $page = $this->page->where('slug', $slug)->first();
+            $page = $this->page->where('id', $slug)->first();
 
             return view('themes.default1.agent.kb.pages.edit', compact('page'));
         } catch (Exception $e) {
@@ -160,7 +160,7 @@ class PageController extends Controller
     /**
      * To update a page.
      *
-     * @param type            $slug
+     * @param type $slug
      * @param type PageUpdate $request
      *
      * @return type redirect
@@ -168,9 +168,9 @@ class PageController extends Controller
     public function update($slug, PageRequest $request)
     {
         // get pages with respect to slug
-        $pages = $this->page->where('slug', $slug)->first();
+        $pages = $this->page->where('id', $slug)->first();
         $sl = $request->input('name');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
 
         try {
             $pages->fill($request->all())->save();

@@ -6,9 +6,7 @@ namespace App\Http\Controllers\Agent\helpdesk;
 use App\Http\Controllers\Controller;
 // requests
 /*  Include Sys_user Model  */
-use App\Http\Requests\helpdesk\ProfilePassword;
 /* For validation include Sys_userRequest in create  */
-use App\Http\Requests\helpdesk\ProfileRequest;
 /* For validation include Sys_userUpdate in update  */
 use App\Http\Requests\helpdesk\Sys_userRequest;
 /*  include guest_note model */
@@ -23,12 +21,10 @@ use App\Model\helpdesk\Agent_panel\User_org;
 use App\User;
 // classes
 /* include ticket_thred model */
-use Auth;
 /* include tickets model */
-use Hash;
 /* TicketRequest to validate the ticket response */
 /* Validate post check ticket */
-use Input;
+use Illuminate\Support\Facades\Request;
 use Redirect;
 
 /**
@@ -246,7 +242,7 @@ class UserController extends Controller
             $users = $user->whereId($id)->first();
             /* Update the value by selected field  */
             /* Check whether function success or not */
-            if ($users->fill($request->input())->save() == true) {
+            if ($users->fill($request->except('active', 'role', 'is_delete', 'ban'))->save() == true) {
                 /* redirect to Index page with Success Message */
                 return redirect('user')->with('success', 'User  Updated Successfully');
             } else {
@@ -288,94 +284,6 @@ class UserController extends Controller
     }
 
     /**
-     * get profile page.
-     *
-     * @return type Response
-     */
-    public function getProfile()
-    {
-        $user = Auth::user();
-
-        return view('themes.default1.agent.helpdesk.user.profile', compact('user'));
-    }
-
-    /**
-     * get profile edit page.
-     *
-     * @return type Response
-     */
-    public function getProfileedit()
-    {
-        $user = Auth::user();
-
-        return view('themes.default1.agent.helpdesk.user.profile-edit', compact('user'));
-    }
-
-    /**
-     * post profile page.
-     *
-     * @param type int            $id
-     * @param type ProfileRequest $request
-     *
-     * @return type Response
-     */
-    public function postProfileedit(ProfileRequest $request)
-    {
-        $user = Auth::user();
-        $user->gender = $request->input('gender');
-        $user->save();
-        if ($user->profile_pic == 'avatar5.png' || $user->profile_pic == 'avatar2.png') {
-            if ($request->input('gender') == 1) {
-                $name = 'avatar5.png';
-                $destinationPath = 'uploads/profilepic';
-                $user->profile_pic = $name;
-            } elseif ($request->input('gender') == 0) {
-                $name = 'avatar2.png';
-                $destinationPath = 'uploads/profilepic';
-                $user->profile_pic = $name;
-            }
-        }
-        if (Input::file('profile_pic')) {
-            //$extension = Input::file('profile_pic')->getClientOriginalExtension();
-            $name = Input::file('profile_pic')->getClientOriginalName();
-            $destinationPath = 'uploads/profilepic';
-            $fileName = rand(0000, 9999).'.'.$name;
-            //echo $fileName;
-            Input::file('profile_pic')->move($destinationPath, $fileName);
-            $user->profile_pic = $fileName;
-        } else {
-            $user->fill($request->except('profile_pic', 'gender'))->save();
-
-            return Redirect::route('profile')->with('success', 'Profile Updated sucessfully');
-        }
-        if ($user->fill($request->except('profile_pic'))->save()) {
-            return Redirect::route('profile')->with('success', 'Profile Updated sucessfully');
-        }
-    }
-
-    /**
-     * Post profile password.
-     *
-     * @param type int             $id
-     * @param type ProfilePassword $request
-     *
-     * @return type Response
-     */
-    public function postProfilePassword($id, ProfilePassword $request)
-    {
-        $user = Auth::user();
-        //echo $user->password;
-        if (Hash::check($request->input('old_password'), $user->getAuthPassword())) {
-            $user->password = Hash::make($request->input('new_password'));
-            $user->save();
-
-            return redirect('profile-edit')->with('success1', 'Password Updated sucessfully');
-        } else {
-            return redirect('profile-edit')->with('fails1', 'Password was not Updated. Incorrect old password');
-        }
-    }
-
-    /**
      * User Assign Org.
      *
      * @param type $id
@@ -384,7 +292,7 @@ class UserController extends Controller
      */
     public function UserAssignOrg($id)
     {
-        $org = Input::get('org');
+        $org = Request::get('org');
         $user_org = new User_org();
         $user_org->org_id = $org;
         $user_org->user_id = $id;
@@ -400,17 +308,17 @@ class UserController extends Controller
      */
     public function User_Create_Org($id)
     {
-        if (Input::get('website') != null) {
+        if (Request::get('website') != null) {
             // checking website
-            $check = Organization::where('website', '=', Input::get('website'))->first();
+            $check = Organization::where('website', '=', Request::get('website'))->first();
         } else {
             $check = null;
         }
 
         // checking name
-        $check2 = Organization::where('name', '=', Input::get('name'))->first();
+        $check2 = Organization::where('name', '=', Request::get('name'))->first();
 
-        if (\Input::get('name') == null) {
+        if (Request::get('name') == null) {
             return 'Name is required';
         } elseif ($check2 != null) {
             return 'Name should be Unique';
@@ -418,11 +326,11 @@ class UserController extends Controller
             return 'Website should be Unique';
         } else {
             $org = new Organization();
-            $org->name = Input::get('name');
-            $org->phone = Input::get('phone');
-            $org->website = Input::get('website');
-            $org->address = Input::get('address');
-            $org->internal_notes = Input::get('internal');
+            $org->name = Request::get('name');
+            $org->phone = Request::get('phone');
+            $org->website = Request::get('website');
+            $org->address = Request::get('address');
+            $org->internal_notes = Request::get('internal');
             $org->save();
 
             $user_org = new User_org();

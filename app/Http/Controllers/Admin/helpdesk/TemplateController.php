@@ -16,7 +16,7 @@ use App\Model\helpdesk\Utility\Languages;
 // classes
 use Exception;
 use Illuminate\Http\Request;
-use Input;
+use Illuminate\Support\Facades\Request as Input;
 
 /**
  * TemplateController.
@@ -115,7 +115,7 @@ class TemplateController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param type           $id
+     * @param type $id
      * @param type Template  $template
      * @param type Languages $language
      *
@@ -341,7 +341,8 @@ class TemplateController extends Controller
 
             return redirect()->back()->with(
                 'success',
-                trans('lang.mail-sent-to-job-for-process'));
+                trans('lang.mail-sent-to-job-for-process')
+            );
         } catch (Exception $e) {
             return redirect()->back()->with('fails', $e->getMessage());
         }

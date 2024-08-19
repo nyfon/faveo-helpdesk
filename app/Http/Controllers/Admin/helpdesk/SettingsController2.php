@@ -4,12 +4,12 @@ namespace App\Http\Controllers\Admin\helpdesk;
 
 // controllers
 use App\Http\Controllers\Controller;
-// requests
 use App\Http\Requests\helpdesk\CompanyRequest;
+// requests
 use App\Http\Requests\helpdesk\EmailRequest;
 use App\Http\Requests\helpdesk\SystemRequest;
-// models
 use App\Model\helpdesk\Agent\Department;
+// models
 use App\Model\helpdesk\Email\Emails;
 use App\Model\helpdesk\Email\Template;
 use App\Model\helpdesk\Manage\Help_topic;
@@ -28,11 +28,12 @@ use App\Model\helpdesk\Utility\Date_time_format;
 use App\Model\helpdesk\Utility\Time_format;
 use App\Model\helpdesk\Utility\Timezones;
 use DateTime;
-// classes
 use DB;
+// classes
 use Exception;
 use Illuminate\Http\Request;
-use Input;
+use Illuminate\Support\Facades\Request as Input;
+use Illuminate\Support\Str;
 use Lang;
 
 /**
@@ -97,7 +98,7 @@ class SettingsController2 extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -117,7 +118,7 @@ class SettingsController2 extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -188,7 +189,7 @@ class SettingsController2 extends Controller
 
     /**
      * @param int $id
-     * @param $compant instance of company table
+     * @param     $compant instance of company table
      *
      * get the form for company setting page
      *
@@ -243,7 +244,7 @@ class SettingsController2 extends Controller
     /**
      * function to delete system logo.
      *
-     *  @return type string
+     * @return type string
      */
     public function deleteLogo()
     {
@@ -614,7 +615,7 @@ class SettingsController2 extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param type         $id
+     * @param type $id
      * @param type Alert   $alert
      * @param type Request $request
      *
@@ -683,7 +684,7 @@ class SettingsController2 extends Controller
     /**
      * 	To display the list of ratings in the system.
      *
-     *  @return type View
+     * @return type View
      */
     public function RatingSettings()
     {
@@ -695,7 +696,7 @@ class SettingsController2 extends Controller
     /**
      * 	To store rating data.
      *
-     *  @return type Redirect
+     * @return type Redirect
      */
     public function PostRatingSettings($slug)
     {
@@ -720,7 +721,7 @@ class SettingsController2 extends Controller
     /**
      *  To delete a type of rating.
      *
-     * 	@return type Redirect
+     * @return type Redirect
      */
     public function RatingDelete($slug)
     {
@@ -732,11 +733,11 @@ class SettingsController2 extends Controller
     /**
      *  Generate Api key.
      *
-     *  @return type json
+     * @return type json
      */
     public function generateApiKey()
     {
-        $key = str_random(32);
+        $key = Str::random(32);
 
         return $key;
     }

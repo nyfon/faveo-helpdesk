@@ -1,15 +1,19 @@
 @extends('themes.default1.admin.layout.admin')
 
 @section('Emails')
-active
+class="nav-link active"
 @stop
 
-@section('emails-bar')
-active
+@section('email-menu-parent')
+class="nav-item menu-open"
+@stop
+
+@section('email-menu-open')
+class="nav nav-treeview menu-open"
 @stop
 
 @section('queue')
-class="active"
+class="nav-link active"
 @stop
 
 @section('HeadInclude')
@@ -29,7 +33,7 @@ class="active"
 @section('content')
 @if (count($errors) > 0)
 <div class="alert alert-danger">
-    <strong>Whoops!</strong> There were some problems with your input.<br><br>
+    <strong>{{Lang::get('lang.woops')}}</strong> {{Lang::get('lang.theirisproblem')}}<br><br>
     <ul>
         @foreach ($errors->all() as $error)
         <li>{{ $error }}</li>
@@ -56,22 +60,21 @@ class="active"
     {{Session::get('warn')}}
 </div>
 @endif
-<div class="box">
-    <div class="box-header">
-        <div class="box-title">
-            {!! Lang::get('lang.queues') !!}
-        </div>
-
+<div class="card card-light">
+    <div class="card-header">
+        <h3 class="card-title">{!! Lang::get('lang.queues') !!}</h3>
     </div>
-    <div class="box-body">
+    <div class="card-body">
         {!! Form::open(['url'=>'queue/'.$queue->id,'method'=>'post','id'=>'form']) !!}
         <div id="response">
 
         </div>
-        {!! Form::submit('save',['class'=>'btn btn-primary']) !!}
-        {!! Form::close() !!}
     </div>
 
+    <div class="card-footer">
+        {!! Form::submit(Lang::get('lang.save'),['class'=>'btn btn-primary']) !!}
+        {!! Form::close() !!}
+    </div>
 </div>
 <script>
 

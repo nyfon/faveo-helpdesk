@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client\helpdesk;
 
 // controllers
 use App\Http\Controllers\Agent\helpdesk\TicketWorkflowController;
+use App\Http\Controllers\Common\FileuploadController;
 use App\Http\Controllers\Controller;
 // requests
 use App\Http\Requests\helpdesk\ClientRequest;
@@ -36,16 +37,22 @@ use Redirect;
 class FormController extends Controller
 {
     /**
+     * @var FileuploadController
+     */
+    protected $fileUploadController;
+
+    /**
      * Create a new controller instance.
      * Constructor to check.
      *
      * @return void
      */
-    public function __construct(TicketWorkflowController $TicketWorkflowController)
+    public function __construct(TicketWorkflowController $TicketWorkflowController, FileuploadController $fileUploadController)
     {
         $this->middleware('board');
         // creating a TicketController instance
         $this->TicketWorkflowController = $TicketWorkflowController;
+        $this->fileUploadController = $fileUploadController;
     }
 
     /**
@@ -76,7 +83,9 @@ class FormController extends Controller
                 $phonecode = '';
             }
 
-            return view('themes.default1.client.helpdesk.form', compact('topics', 'codes', 'email_mandatory'))->with('phonecode', $phonecode);
+            [$max_size_in_bytes, $max_size_in_actual] = $this->fileUploadController->file_upload_max_size();
+
+            return view('themes.default1.client.helpdesk.form', compact('topics', 'codes', 'email_mandatory', 'max_size_in_bytes', 'max_size_in_actual'))->with('phonecode', $phonecode);
         } else {
             return \Redirect::route('home');
         }
@@ -179,7 +188,7 @@ class FormController extends Controller
             // $priority = $ticket_settings->first()->priority;
             $default_priority = Ticket_Priority::where('is_default', '=', 1)->first();
             $user_priority = CommonSettings::where('option_name', '=', 'user_priority')->first();
-            if (!($request->input('priority'))) {
+            if (!$request->input('priority')) {
                 $priority = $default_priority->priority_id;
                 if ($helpTopicObj->exists() && ($helpTopicObj->value('status') == 1)) {
                     $priority = $helpTopicObj->value('priority');
@@ -220,7 +229,7 @@ class FormController extends Controller
                     }
                 }
             }
-            \Event::fire(new \App\Events\ClientTicketFormPost($form_extras, $email, $source));
+            event(new \App\Events\ClientTicketFormPost($form_extras, $email, $source));
             $result = $this->TicketWorkflowController->workflow($email, $name, $subject, $details, $phone, $phonecode, $mobile_number, $helptopic, $sla, $priority, $source, $collaborator, $department, $assignto, $team_assign, $status, $form_extras, $auto_response);
             // dd($result);
             if ($result[1] == 1) {
@@ -241,7 +250,7 @@ class FormController extends Controller
 //                    }
                 }
                 // dd($result);
-                return Redirect::back()->with('success', Lang::get('lang.Ticket-has-been-created-successfully-your-ticket-number-is').' '.$result[0].'. '.Lang::get('lang.Please-save-this-for-future-reference'));
+                return Redirect::back()->with('success', Lang::get('lang.Ticket-has-been-created-successfully-your-ticket-number-is').' '.$result[0].'. ');
             } else {
                 return Redirect::back()->withInput($request->except('password'))->with('fails', Lang::get('lang.failed-to-create-user-tcket-as-mobile-has-been-taken'));
             }
@@ -261,12 +270,13 @@ class FormController extends Controller
     public function post_ticket_reply($id, Request $request)
     {
         try {
-            if ($comment != null) {
+            $comment = $request->input('comment');
+            if (!empty($comment)) {
                 $tickets = Tickets::where('id', '=', $id)->first();
                 $thread = Ticket_Thread::where('ticket_id', '=', $tickets->id)->first();
 
                 $subject = $thread->title.'[#'.$tickets->ticket_number.']';
-                $body = $request->input('comment');
+                $body = $comment;
 
                 $user_cred = User::where('id', '=', $tickets->user_id)->first();
 

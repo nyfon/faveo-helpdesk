@@ -15,7 +15,7 @@ $segment = "";
 foreach ($segments as $seg) {
     $segment.="/".$seg;
 }
-$inputs = json_encode(\Input::all());
+$inputs = json_encode(Request::all());
 $path = public_path();
 ?>
 <script type="text/javascript">
@@ -24,18 +24,35 @@ $path = public_path();
         function myFunction()
         {
             return jQuery('#chumper').dataTable({
-                "sDom": "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
+                "sDom": "<'row'<'col-sm-6'l><'col-sm-6'f>r>"+
                         "t"+
-                        "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                        "<'row'<'col-sm-6'i><'col-sm-6'p>>",
                 "sPaginationType": "full_numbers",
                 "bProcessing": true,
-                "bServerSide": true,
                 "bStateSave" : true,
                 "bStateDuration": -1,
                 "oLanguage": {
-                    "sLengthMenu": "_MENU_ Records per page",
-                    "sSearch"    : "Search: ",
-                    "sProcessing": '<img id="blur-bg" class="backgroundfadein" style="top:40%;left:50%; width: 50px; height:50 px; display: block; position:    fixed;" src="{!! asset("lb-faveo/media/images/gifloader3.gif") !!}">'
+                    "sEmptyTable": "{!! Lang::get('datatables.sEmptyTable') !!}",
+                    "sInfo": "{!! Lang::get('datatables.sInfo') !!}",
+                    "sInfoEmpty": "{!! Lang::get('datatables.sInfoEmpty') !!}",
+                    "sInfoFiltered": "{!! Lang::get('datatables.sInfoFiltered') !!}",
+                    "sInfoPostFix": "{!! Lang::get('datatables.sInfoPostFix') !!}",
+                    "sInfoThousands": "{!! Lang::get('datatables.sInfoThousands') !!}",
+                    "sLengthMenu": "{!! Lang::get('datatables.sLengthMenu') !!}",
+                    "sLoadingRecords": "{!! Lang::get('datatables.sLoadingRecords') !!}",
+                    "sProcessing": "{!! Lang::get('datatables.sProcessing') !!}",
+                    "sSearch": "{!! Lang::get('datatables.sSearch') !!}",
+                    "sZeroRecords": "{!! Lang::get('datatables.sZeroRecords') !!}",
+                    "oPaginate": {
+                        "sFirst": "{!! Lang::get('datatables.oPaginate.sFirst') !!}",
+                        "sLast": "{!! Lang::get('datatables.oPaginate.sLast') !!}",
+                        "sNext": "{!! Lang::get('datatables.oPaginate.sNext') !!}",
+                        "sPrevious": "{!! Lang::get('datatables.oPaginate.sPrevious') !!}"
+                    },
+                    "oAria": {
+                        "sSortAscending": "{!! Lang::get('datatables.oAria.sSortAscending') !!}",
+                        "sSortDescending": "{!! Lang::get('datatables.oAria.sortDescending') !!}"
+                    },
                 },
                 "stateLoadParams": function (settings, data) {
                     if ('{{$load_old_state}}') {
@@ -75,8 +92,9 @@ $path = public_path();
                 },
                 "aaSorting": [[5, "desc"]],
                 "columnDefs": [
+                    {"defaultContent": "-",
+                        "targets": "_all"},
                     { "orderable": false, "targets": 0},
-                    { "searchable": false, "targets": [5] },
                     { "visible": true, "targets": 5 },
                     {
                         "aTargets": [0],
@@ -88,10 +106,18 @@ $path = public_path();
                         }
                     } 
                 ],
+                "columns":[
+                    {data: "id"},
+                    {data: "title"},
+                    {data: "ticket_number"},
+                    {data: "c_uname"},
+                    {data: "a_uname"},
+                    {data: "updated_at"},
+                ],
                 "fnCreatedRow": function (nRow, aData, iDataIndex) {
-                    var str = aData[0];
-                    var length = aData[2].indexOf('*') - aData[2].indexOf('$');
-                    var p = aData[2].substr(aData[2].indexOf('$')+1, length-1);
+                    var str = aData['id'];
+                    var length = aData['ticket_number'].indexOf('*') - aData['ticket_number'].indexOf('$');
+                    var p = aData['ticket_number'].substr(aData['ticket_number'].indexOf('$')+1, length-1);
                     $("td", nRow).attr('title', "{!! Lang::get('lang.ticket-has-x-priority', ['priority' => '"+p+"']) !!}");
                     if (str.search("#000") == -1) {
                         $("td", nRow).css({"background-color": "#F3F3F3", "font-weight": "600", "border-bottom": "solid 0.5px #ddd", "border-right": "solid 0.5px #F3F3F3"});

@@ -20,19 +20,51 @@ foreach($segments as $seg){
         function myFunction(show)
         {
             return jQuery('#chumper').dataTable({
-                "sDom": "<'row'<'col-xs-6'l><'col-xs-6'>r>"+
+                "sDom": "<'row'<'col-sm-6'l><'col-sm-6'>r>"+
                         "t"+
-                        "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                        "<'row'<'col-sm-6'i><'col-sm-6'p>>",
                 "sPaginationType": "full_numbers",
                 "bProcessing": true,
                 "bServerSide": true,
+                "oLanguage": {
+                    "sEmptyTable": "{!! Lang::get('datatables.sEmptyTable') !!}",
+                    "sInfo": "{!! Lang::get('datatables.sInfo') !!}",
+                    "sInfoEmpty": "{!! Lang::get('datatables.sInfoEmpty') !!}",
+                    "sInfoFiltered": "{!! Lang::get('datatables.sInfoFiltered') !!}",
+                    "sInfoPostFix": "{!! Lang::get('datatables.sInfoPostFix') !!}",
+                    "sInfoThousands": "{!! Lang::get('datatables.sInfoThousands') !!}",
+                    "sLengthMenu": "{!! Lang::get('datatables.sLengthMenu') !!}",
+                    "sLoadingRecords": "{!! Lang::get('datatables.sLoadingRecords') !!}",
+                    "sProcessing": "{!! Lang::get('datatables.sProcessing') !!}",
+                    "sSearch": "{!! Lang::get('datatables.sSearch') !!}",
+                    "sZeroRecords": "{!! Lang::get('datatables.sZeroRecords') !!}",
+                    "oPaginate": {
+                        "sFirst": "{!! Lang::get('datatables.oPaginate.sFirst') !!}",
+                        "sLast": "{!! Lang::get('datatables.oPaginate.sLast') !!}",
+                        "sNext": "{!! Lang::get('datatables.oPaginate.sNext') !!}",
+                        "sPrevious": "{!! Lang::get('datatables.oPaginate.sPrevious') !!}"
+                    },
+                    "oAria": {
+                        "sSortAscending": "{!! Lang::get('datatables.oAria.sSortAscending') !!}",
+                        "sSortDescending": "{!! Lang::get('datatables.oAria.sortDescending') !!}"
+                    },
+                },
                 "ajax": {
                     url: "{{url('user-list')}}",
                     data: function (d) {
                         d.profiletype = show;
                         d.searchTerm = searchTerm;
                     }
-                }
+                },
+                "columns":[
+                    {data: "user_name"},
+                    {data: "email"},
+                    {data: "mobile"},
+                    {data: "active"},
+                    {data: "updated_at"},
+                    {data: "role"},
+                    {data: "Actions"},
+                ],
                 
             });
         }

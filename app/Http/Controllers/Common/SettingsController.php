@@ -4,25 +4,26 @@ namespace App\Http\Controllers\Common;
 
 // controllers
 use App\Http\Controllers\Controller;
-// requests
 use App\Http\Requests;
+// requests
 use App\Http\Requests\helpdesk\SmtpRequest;
 use App\Model\helpdesk\Email\Smtp;
-// models
 use App\Model\helpdesk\Settings\Plugin;
+// models
 use App\Model\helpdesk\Theme\Widgets;
 use Config;
-// classes
 use Crypt;
+// classes
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Input;
+use Illuminate\Support\Facades\Request as Input;
 use Lang;
 
 /**
  * ***************************
- * Settings Controllers
+ * Settings Controllers.
  * ***************************
  * Controller to keep smtp details and fetch where ever needed.
  */
@@ -76,8 +77,8 @@ class SettingsController extends Controller
                             <form action="'.url('edit-widget/'.$model->id).'" method="POST">
                             '.csrf_field().'
                                 <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                     <h4 class="modal-title">'.strtoupper($model->name).' </h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                 </div>
                                 <div class="modal-body">
                                     <div class="form-group" style="width:100%">
@@ -90,13 +91,24 @@ class SettingsController extends Controller
                                         <textarea name="content" class="form-control" style="width:100%" id="Content'.$model->id.'">'.$model->value.'</textarea>
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="dismis2">'.\Lang::get('lang.close').'</button>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal" id="dismis2">'.\Lang::get('lang.close').'</button>
                                     <input type="submit" class="btn btn-primary" value="'.\Lang::get('lang.update').'">
                                 </div>
                                 <script>
                                     $(function () {
-                                        $("#Content'.$model->id.'").wysihtml5();
+                                        $("#Content'.$model->id.'").summernote({
+                                        height: 300,
+                                        tabsize: 2,
+                                        toolbar: [
+                                        ["style", ["bold", "italic", "underline", "clear"]],
+                                        ["font", ["strikethrough", "superscript", "subscript"]],
+                                        ["fontsize", ["fontsize"]],
+                                        ["color", ["color"]],
+                                        ["para", ["ul", "ol", "paragraph"]],
+                                        ["height", ["height"]]
+                                      ]
+                                      });
                                     });
                                 </script>
                             </form>
@@ -164,18 +176,17 @@ class SettingsController extends Controller
                             <form action="'.url('edit-widget/'.$model->id).'" method="POST">
                             '.csrf_field().'
                                 <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                     <h4 class="modal-title">'.strtoupper($model->name).' </h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                                 </div>
                                 <div class="modal-body">
-                                    <br/>
                                     <div class="form-group" style="width:100%">
                                         <label>'.\Lang::get('lang.link').'</label><br/>
                                         <input type="url" name="content" class="form-control" style="width:100%" value="'.$model->value.'">
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="dismis2">'.\Lang::get('lang.close').'</button>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal" id="dismis2">'.\Lang::get('lang.close').'</button>
                                     <input type="submit" class="btn btn-primary" value="'.\Lang::get('lang.update').'">
                                 </div>
                             </form>
@@ -203,7 +214,7 @@ class SettingsController extends Controller
         try {
             $widget->save();
 
-            return redirect()->back()->with('success', $widget->name.' Saved Successfully');
+            return redirect()->back()->with('success', $widget->name.trans('lang.save-successful'));
         } catch (Exception $e) {
             return redirect()->back()->with('fails', $e->errorInfo[2]);
         }
@@ -296,7 +307,7 @@ class SettingsController extends Controller
         return \Datatable::collection(new Collection($plugins))
                         ->searchColumns('name')
                         ->addColumn('name', function ($model) {
-                            if (array_has($model, 'path')) {
+                            if (Arr::has($model, 'path')) {
                                 if ($model['status'] == 0) {
                                     $activate = '<a href='.url('plugin/status/'.$model['path']).'>Activate</a>';
                                     $settings = ' ';

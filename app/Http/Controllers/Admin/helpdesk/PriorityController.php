@@ -31,7 +31,7 @@ class PriorityController extends Controller
     {
         $this->PhpMailController = $PhpMailController;
         $this->NotificationController = $NotificationController;
-        $this->middleware('auth');
+        $this->middleware('roles');
     }
 
     /**
@@ -91,9 +91,9 @@ class PriorityController extends Controller
                             })
                             ->addColumn('action', function ($model) {
                                 if ($model->is_default > 0) {
-                                    return '<a href='.url('ticket/priority/'.$model->priority_id.'/edit')." class='btn btn-info btn-xs' disabled='disabled'>Edit</a>&nbsp;<a href=".url('ticket/priority/'.$model->priority_id.'/destroy')." class='btn btn-warning btn-info btn-xs' disabled='disabled' > delete </a>";
+                                    return '<button class="btn btn-primary btn-xs" disabled> Edit </button>&nbsp;<button class="btn btn-danger btn-xs" disabled> Delete </button>';
                                 } else {
-                                    return '<a href='.url('ticket/priority/'.$model->priority_id.'/edit')." class='btn btn-info btn-xs'>Edit</a>&nbsp;<a class='btn btn-danger btn-xs' onclick='confirmDelete(".$model->priority_id.")'>Delete </a>";
+                                    return '<a href='.url('ticket/priority/'.$model->priority_id.'/edit')." class='btn btn-primary btn-xs'>Edit</a>&nbsp;<a class='btn btn-danger btn-xs' onclick='confirmDelete(".$model->priority_id.")' href='javascript:;'>Delete </a>";
                                 }
                             })
                             ->searchColumns('priority')
@@ -159,7 +159,7 @@ class PriorityController extends Controller
                     ->update(['is_default' => 1]);
         }
 
-        return \Redirect::route('priority.index')->with('success', (Lang::get('lang.priority_successfully_updated')));
+        return \Redirect::route('priority.index')->with('success', Lang::get('lang.priority_successfully_updated'));
     }
 
     /**
@@ -187,6 +187,6 @@ class PriorityController extends Controller
 
         $tk_priority->delete();
 
-        return \Redirect::route('priority.index')->with('success', (Lang::get('lang.delete_successfully')));
+        return \Redirect::route('priority.index')->with('success', Lang::get('lang.delete_successfully'));
     }
 }

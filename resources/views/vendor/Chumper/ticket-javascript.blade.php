@@ -24,13 +24,35 @@ foreach($segments as $seg){
         function myFunction()
         {
             return jQuery('#chumper').dataTable({
-                "sDom": "<'row'<'col-xs-6'l><'col-xs-6'f>r>"+
+                "sDom": "<'row'<'col-sm-6'l><'col-sm-6'f>r>"+
                         "t"+
-                        "<'row'<'col-xs-6'i><'col-xs-6'p>>",
+                        "<'row'<'col-sm-6'i><'col-sm-6'p>>",
                 "sPaginationType": "full_numbers",
                 "bProcessing": true,
-                "bServerSide": true,
                 "lengthMenu": [[10, 25, 50, 100, 500], [10, 25, 50, 100, 500]],
+                "oLanguage": {
+                    "sEmptyTable": "{!! Lang::get('datatables.sEmptyTable') !!}",
+                    "sInfo": "{!! Lang::get('datatables.sInfo') !!}",
+                    "sInfoEmpty": "{!! Lang::get('datatables.sInfoEmpty') !!}",
+                    "sInfoFiltered": "{!! Lang::get('datatables.sInfoFiltered') !!}",
+                    "sInfoPostFix": "{!! Lang::get('datatables.sInfoPostFix') !!}",
+                    "sInfoThousands": "{!! Lang::get('datatables.sInfoThousands') !!}",
+                    "sLengthMenu": "{!! Lang::get('datatables.sLengthMenu') !!}",
+                    "sLoadingRecords": "{!! Lang::get('datatables.sLoadingRecords') !!}",
+                    "sProcessing": "{!! Lang::get('datatables.sProcessing') !!}",
+                    "sSearch": "{!! Lang::get('datatables.sSearch') !!}",
+                    "sZeroRecords": "{!! Lang::get('datatables.sZeroRecords') !!}",
+                    "oPaginate": {
+                        "sFirst": "{!! Lang::get('datatables.oPaginate.sFirst') !!}",
+                        "sLast": "{!! Lang::get('datatables.oPaginate.sLast') !!}",
+                        "sNext": "{!! Lang::get('datatables.oPaginate.sNext') !!}",
+                        "sPrevious": "{!! Lang::get('datatables.oPaginate.sPrevious') !!}"
+                    },
+                    "oAria": {
+                        "sSortAscending": "{!! Lang::get('datatables.oAria.sSortAscending') !!}",
+                        "sSortDescending": "{!! Lang::get('datatables.oAria.sortDescending') !!}"
+                    },
+                },
                 "ajax": {
                     url: "{{url('filter')}}",
                     data: function (d) {
@@ -41,12 +63,22 @@ foreach($segments as $seg){
                 },
                 "aaSorting": sort,
                 "columnDefs": [
-                    { "searchable": false, "targets": [6,7] },
+                    {"defaultContent": "-",
+                        "targets": "_all"},
                     { "visible": last, "targets": 6 },
                     {"visible": create, "targets":7},
                 ],
+                "columns":[
+                    {data: "id"},
+                    {data: "title"},
+                    {data: "ticket_number"},
+                    {data: "priority"},
+                    {data: "user_name"},
+                    {data: "assign_user_name"},
+                    {data: "updated_at"},
+                ],
                 "fnCreatedRow": function (nRow, aData, iDataIndex) {
-                    var str = aData[3];
+                    var str = aData['ticket_number'];
                     if (str.search("#000") == -1) {
                         $("td", nRow).css({"background-color": "#F3F3F3", "font-weight": "600", "border-bottom": "solid 0.5px #ddd", "border-right": "solid 0.5px #F3F3F3"});
                         $("td", nRow).mouseenter(function () {

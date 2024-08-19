@@ -4,22 +4,23 @@ namespace App\Http\Controllers\Agent\kb;
 
 // Controllers
 use App\Http\Controllers\Controller;
-// Requests
 use App\Http\Requests\kb\ArticleRequest;
+// Requests
 use App\Http\Requests\kb\ArticleUpdate;
-// Models
 use App\Model\kb\Article;
+// Models
 use App\Model\kb\Category;
 use App\Model\kb\Comment;
 use App\Model\kb\Relationship;
 use App\Model\kb\Settings;
-// Classes
 use Auth;
+// Classes
 use Chumper\Datatable\Table;
 use Datatable;
 use DB;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Lang;
 use Redirect;
 
@@ -45,7 +46,7 @@ class ArticleController extends Controller
         // checking authentication
         $this->middleware('auth');
         // checking roles
-        $this->middleware('roles');
+        $this->middleware('role.agent');
         SettingsController::language();
     }
 
@@ -72,7 +73,7 @@ class ArticleController extends Controller
 
                         /* add column name */
                         ->addColumn('name', function ($model) {
-                            $name = str_limit($model->name, 20, '...');
+                            $name = Str::limit($model->name, 20, '...');
 
                             return "<p title=$model->name>$name</p>";
                         })
@@ -90,15 +91,15 @@ class ArticleController extends Controller
         			<div class="modal-dialog">
             			<div class="modal-content">
                 			<div class="modal-header">
+                                <h4 class="modal-title">'.Lang::get('lang.delete').'</h4>
                     			<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    			<h4 class="modal-title">Are You Sure ?</h4>
                 			</div>
                 			<div class="modal-body">
-                				'.$model->name.'
+                				<span>'.Lang::get('lang.are_you_sure_you_want_to_delete').'</span>&nbsp; <b> '.$model->name.' </b> ?
                 			</div>
-                			<div class="modal-footer">
-                    			<button type="button" class="btn btn-default pull-left" data-dismiss="modal" id="dismis2">Close</button>
-                    			<a href='.url("article/delete/$model->slug").'><button class="btn btn-danger">delete</button></a>
+                			<div class="modal-footer justify-content-between">
+                    			<button type="button" class="btn btn-default" data-dismiss="modal" id="dismis2">'.Lang::get('lang.close').'</button>
+                    			<a href='.url("article/delete/$model->slug").'><button class="btn btn-danger">'.Lang::get('lang.delete').'</button></a>
                 			</div>
             			</div>
         			</div>
@@ -157,7 +158,7 @@ class ArticleController extends Controller
         $publishTime = $request->input('year').'-'.$request->input('month').'-'.$request->input('day').' '.$request->input('hour').':'.$request->input('minute').':00';
 
         $sl = $request->input('name');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
         $article->slug = $slug;
         $article->publish_time = $publishTime;
         $article->fill($request->except('created_at', 'slug'))->save();
@@ -229,7 +230,7 @@ class ArticleController extends Controller
 
         $id = $aid->id;
         $sl = $request->input('slug');
-        $slug = str_slug($sl, '-');
+        $slug = Str::slug($sl, '-');
         // dd($slug);
 
         $article->slug = $slug;
@@ -259,7 +260,7 @@ class ArticleController extends Controller
     /**
      * Delete an Agent by id.
      *
-     * @param type         $id
+     * @param type $id
      * @param type Article $article
      *
      * @return Response

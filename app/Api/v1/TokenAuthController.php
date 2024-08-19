@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
@@ -18,6 +19,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
  *
  * @author Vijay Sebastian <vijay.sebastian@ladybirdweb.com>
  * @copyright (c) 2016, Ladybird Web Solution
+ *
  * @name Faveo HELPDESK
  *
  * @version v1
@@ -50,7 +52,7 @@ class TokenAuthController extends Controller
         //$credentials = $request->only('email', 'password');
 
         try {
-            if (!$token = JWTAuth::attempt([$field => $usernameinput, 'password' => $password, 'active'=>1])) {
+            if (!$token = JWTAuth::attempt([$field => $usernameinput, 'password' => $password, 'active' => 1])) {
                 return response()->json(['error' => 'invalid_credentials', 'status_code' => 401]);
             }
         } catch (JWTException $e) {
@@ -134,7 +136,7 @@ class TokenAuthController extends Controller
     {
         try {
             $v = \Validator::make($request->all(), [
-                        'url' => 'required|url',
+                'url' => 'required|url',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -155,7 +157,7 @@ class TokenAuthController extends Controller
     {
         try {
             $v = \Validator::make($request->all(), [
-                        'email' => 'required|email|exists:users,email',
+                'email' => 'required|email|exists:users,email',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -168,12 +170,12 @@ class TokenAuthController extends Controller
             if (isset($user)) {
                 $user1 = $user->email;
                 //gen new code and pass
-                $code = str_random(60);
+                $code = Str::random(60);
                 $password_reset_table = \DB::table('password_resets')->where('email', '=', $user->email)->first();
                 if (isset($password_reset_table)) {
                     $password_reset_table = \DB::table('password_resets')->where('email', '=', $user->email)->update(['token' => $code, 'created_at' => $date]);
-                // $password_reset_table->token = $code;
-                // $password_reset_table->update(['token' => $code]);
+                    // $password_reset_table->token = $code;
+                    // $password_reset_table->update(['token' => $code]);
                 } else {
                     $create_password_reset = \DB::table('password_resets')->insert(['email' => $user->email, 'token' => $code, 'created_at' => $date]);
                 }

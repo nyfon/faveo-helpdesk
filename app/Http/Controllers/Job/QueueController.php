@@ -12,6 +12,11 @@ use Illuminate\Http\Request;
 
 class QueueController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'roles']);
+    }
+
     public function index()
     {
         try {
@@ -65,7 +70,7 @@ class QueueController extends Controller
                 }
             }
 
-            return redirect()->back()->with('success', 'Updated');
+            return redirect()->back()->with('success', trans('lang.updated'));
         } catch (Exception $ex) {
             return redirect()->back()->with('fails', $ex->getMessage());
         }
@@ -90,7 +95,7 @@ class QueueController extends Controller
             $queue->status = 1;
             $queue->save();
 
-            return redirect()->back()->with('success', 'Activated');
+            return redirect()->back()->with('success', trans('lang.activated'));
         } catch (Exception $ex) {
             return redirect()->back()->with('fails', $ex->getMessage());
         }

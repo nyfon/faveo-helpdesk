@@ -39,7 +39,7 @@ use Exception;
 use GeoIP;
 use Hash;
 use Illuminate\Http\Request;
-use Input;
+use Illuminate\Support\Facades\Request as Input;
 use Lang;
 use Redirect;
 
@@ -81,14 +81,16 @@ class UserController extends Controller
         try {
             /* get all values in Sys_user */
 
-            $table = \ Datatable::table()
-            ->addColumn(Lang::get('lang.name'),
+            $table = \Datatable::table()
+            ->addColumn(
+                Lang::get('lang.name'),
                 Lang::get('lang.email'),
                 Lang::get('lang.phone'),
                 Lang::get('lang.status'),
                 Lang::get('lang.last_login'),
                 Lang::get('lang.role'),
-                Lang::get('lang.action'))  // these are the column headings to be shown
+                Lang::get('lang.action')
+            )  // these are the column headings to be shown
                 ->noScript();
 
             return view('themes.default1.agent.helpdesk.user.index', compact('table'));
@@ -149,7 +151,7 @@ class UserController extends Controller
         }
         // displaying list of users with chumper datatables
         // return \Datatable::collection(User::where('role', "!=", "admin")->get())
-        return \Datatables::of($users)
+        return \Yajra\DataTables\Facades\DataTables::of($users)
                         /* column username */
                         ->removeColumn('id', 'last_name', 'country_code', 'phone_number')
                         ->addColumn('user_name', function ($model) {
@@ -169,7 +171,7 @@ class UserController extends Controller
                         })
                         /* column email */
                         ->addColumn('email', function ($model) {
-                            $email = "<a href='".route('user.show', $model->id)."'>".$model->email.'</a>';
+                            $email = "<a href='".route('user.show', $model->id)."'>".e($model->email).'</a>';
 
                             return $email;
                         })
@@ -177,11 +179,11 @@ class UserController extends Controller
                         ->addColumn('mobile', function ($model) {
                             $phone = '';
                             if ($model->phone_number) {
-                                $phone = $model->ext.' '.$model->phone_number;
+                                $phone = htmlspecialchars($model->ext.' '.$model->phone_number, ENT_QUOTES, 'UTF-8');
                             }
                             $mobile = '';
                             if ($model->mobile) {
-                                $mobile = $model->mobile;
+                                $mobile = htmlspecialchars($model->mobile, ENT_QUOTES, 'UTF-8');
                             }
                             $phone = $phone.'&nbsp;&nbsp;&nbsp;'.$mobile;
 
@@ -229,6 +231,7 @@ class UserController extends Controller
                                 }
                             }
                         })
+                        ->rawColumns(['user_name', 'email', 'mobile', 'active', 'updated_at', 'role', 'Actions'])
                         ->make();
     }
 
@@ -330,7 +333,7 @@ class UserController extends Controller
                 // returns for the success case
                 $email_mandatory = CommonSettings::select('status')->where('option_name', '=', 'email_mandatory')->first();
                 if (($request->input('active') == '0' || $request->input('active') == 0) || ($email_mandatory->status == '0') || $email_mandatory->status == 0) {
-                    \Event::fire(new \App\Events\LoginEvent($request));
+                    event(new \App\Events\LoginEvent($request));
                 }
 
                 return redirect('user')->with('success', Lang::get('lang.User-Created-Successfully'));
@@ -597,8 +600,8 @@ class UserController extends Controller
             }
         }
         // } catch (Exception $e) {
-            /* redirect to Index page with Fails Message */
-            // return redirect('user')->with('fails', $e->getMessage());
+        /* redirect to Index page with Fails Message */
+        // return redirect('user')->with('fails', $e->getMessage());
         // }
     }
 
@@ -637,7 +640,6 @@ class UserController extends Controller
     public function edit($id, CountryCode $code)
     {
         try {
-
             // dd('here');
             $settings = CommonSettings::select('status')->where('option_name', '=', 'send_otp')->first();
             $email_mandatory = CommonSettings::select('status')->where('option_name', '=', 'email_mandatory')->first();
@@ -654,7 +656,7 @@ class UserController extends Controller
             // $org_name=Organization::where('id','=',$org_id)->pluck('name')->first();
             // dd($org_name);
 
-            return view('themes.default1.agent.helpdesk.user.edit', compact('users', 'orgs', '$settings', '$email_mandatory', 'organization_id'))->with('phonecode', $phonecode->phonecode);
+            return view('themes.default1.agent.helpdesk.user.edit', compact('users', 'orgs', 'settings', 'email_mandatory', 'organization_id'))->with('phonecode', $phonecode->phonecode);
         } catch (Exception $e) {
             return redirect()->back()->with('fails', $e->getMessage());
         }
@@ -688,7 +690,7 @@ class UserController extends Controller
                 }
             }
             $users->mobile = ($request->input('mobile') == '') ? null : $request->input('mobile');
-            $users->fill($request->except('mobile'));
+            $users->fill($request->except('mobile', 'active', 'role', 'is_delete', 'ban'));
             $users->save();
             if ($request->input('org_id') != '') {
                 $orgid = $request->input('org_id');
@@ -763,7 +765,7 @@ class UserController extends Controller
                 }
                 $user->country_code = $request->country_code;
             }
-            $user->fill($request->except('profile_pic', 'mobile'));
+            $user->fill($request->except('profile_pic', 'mobile', 'active', 'role', 'is_delete', 'ban'));
             $user->gender = $request->input('gender');
             $user->save();
             if (Input::file('profile_pic')) {
@@ -910,7 +912,7 @@ class UserController extends Controller
         // checking if the name is unique
         $check2 = Organization::where('name', '=', Input::get('name'))->first();
         // if any of the fields is not available then return false
-        if (\Input::get('name') == null) {
+        if (Input::get('name') == null) {
             return 'Name is required';
         } elseif ($check2 != null) {
             return 'Name should be Unique';
@@ -993,7 +995,8 @@ class UserController extends Controller
             $users = $this->getUsers($first_date, $second_date);
             $excel_controller = new \App\Http\Controllers\Common\ExcelController();
             $filename = 'users'.$date;
-            $excel_controller->export($filename, $users);
+
+            return $excel_controller->export($filename, $users);
         } catch (Exception $ex) {
             return redirect()->back()->with('fails', $ex->getMessage());
         }
@@ -1026,7 +1029,7 @@ class UserController extends Controller
         if (\Schema::hasTable('sms')) {
             $sms = DB::table('sms')->get();
             if (count($sms) > 0) {
-                \Event::fire(new \App\Events\LoginEvent($request));
+                event(new \App\Events\LoginEvent($request));
 
                 return 1;
             }
@@ -1043,7 +1046,7 @@ class UserController extends Controller
                 ->first();
         if ($otp != null) {
             $otp_length = strlen(Input::get('otp'));
-            if (($otp_length == 6 && !preg_match('/[a-z]/i', Input::get('otp')))) {
+            if ($otp_length == 6 && !preg_match('/[a-z]/i', Input::get('otp'))) {
                 $otp2 = Hash::make(Input::get('otp'));
                 $date1 = date_format($otp->updated_at, 'Y-m-d h:i:sa');
                 $date2 = date('Y-m-d h:i:sa');

@@ -8,6 +8,7 @@ use App\Model\Update\BarNotification;
 use Artisan;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class UpgradeController extends Controller
 {
@@ -43,7 +44,7 @@ class UpgradeController extends Controller
                 'data' => $data,
             ];
             $url = 'http://faveohelpdesk.com/billing/public/verification';
-            if (str_contains($url, ' ')) {
+            if (Str::contains($url, ' ')) {
                 $url = str_replace(' ', '%20', $url);
             }
             $curl = $this->postCurl($url, $post_data);
@@ -65,7 +66,7 @@ class UpgradeController extends Controller
     {
         $name = \Config::get('app.name');
         $durl = 'http://www.faveohelpdesk.com/billing/public/download-url';
-        if (str_contains($durl, ' ')) {
+        if (Str::contains($durl, ' ')) {
             $durl = str_replace(' ', '%20', $durl);
         }
         $data = [
@@ -82,11 +83,11 @@ class UpgradeController extends Controller
     {
         echo '<p>Downloading New Update</p>';
         $context = stream_context_create(
-                [
-                    'http' => [
-                        'header' => 'User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
-                    ],
-                ]
+            [
+                'http' => [
+                    'header' => 'User-Agent: Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36',
+                ],
+            ]
         );
 
         $newUpdate = file_get_contents($download_url, false, $context);
@@ -97,7 +98,7 @@ class UpgradeController extends Controller
         $dlHandler = fopen($this->dir.'/UPDATES/'.'/faveo-helpdesk-master.zip', 'w');
         if (!fwrite($dlHandler, $newUpdate)) {
             echo '<p>Could not save new update. Operation aborted.</p>';
-            exit();
+            exit;
         }
         fclose($dlHandler);
         echo '<p>Update Downloaded And Saved</p>';
@@ -204,7 +205,7 @@ class UpgradeController extends Controller
             echo "<li style='color:red;'>".$ex->getMessage().'</li>';
             echo '</ul>';
         }
-        exit();
+        exit;
     }
 
     public function deleteBarNotification($key)
@@ -292,7 +293,7 @@ class UpgradeController extends Controller
                             }
                         } else {
                             echo '<p>Latest code found. <a href='.url('file-upgrade?dodownload=true').'>&raquo; Download Now?</a></p>';
-                            exit();
+                            exit;
                         }
                     } else {
                         echo '<p>Update already downloaded.</p>';
@@ -301,7 +302,7 @@ class UpgradeController extends Controller
                         $updated = $this->doUpdate();
                     } else {
                         echo '<p>Update ready. <a href='.url('file-upgrade?doUpdate=true').'>&raquo; Install Now?</a></p>';
-                        exit();
+                        exit;
                     }
 
                     if ($updated == true) {

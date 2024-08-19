@@ -6,9 +6,15 @@ use App\Http\Controllers\Controller;
 use Exception;
 use Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Request as Input;
 
 class MailController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'roles']);
+    }
+
     public function serviceForm(Request $request)
     {
         $serviceid = $request->input('service');
@@ -26,7 +32,7 @@ class MailController extends Controller
 
     public function form($label, $name, $class)
     {
-        $mailid = \Input::get('emailid');
+        $mailid = Input::get('emailid');
         if ($mailid) {
             $emails = new \App\Model\helpdesk\Email\Emails();
             $email = $emails->find($mailid);
@@ -64,7 +70,7 @@ class MailController extends Controller
                 case 'log':
                     return $form;
                 case 'ses':
-                     $form .= "<div class='row'>".$this->form('Key', 'key', 'col-md-6 form-group');
+                    $form .= "<div class='row'>".$this->form('Key', 'key', 'col-md-6 form-group');
                     $form .= $this->form('Secret Key', 'secret', 'col-md-6 form-group').$this->form('Region', 'region', 'col-md-6 form-group').'</div>';
 
                     return $form;

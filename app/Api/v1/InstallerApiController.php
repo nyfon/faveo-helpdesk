@@ -37,11 +37,11 @@ class InstallerApiController extends Controller
     public function config_database(Request $request)
     {
         $rules = [
-                'database'     => 'required|min:1',
-                'host'         => 'required',
-                'databasename' => 'required|min:1',
-                'dbusername'   => 'required|min:1',
-            ];
+            'database'     => 'required|min:1',
+            'host'         => 'required',
+            'databasename' => 'required|min:1',
+            'dbusername'   => 'required|min:1',
+        ];
         if ($request->port) {
             $rules['port'] = 'integer|min:0';
         }
@@ -52,7 +52,8 @@ class InstallerApiController extends Controller
                 'databasename' => $request->databasename,
                 'dbusername'   => $request->dbusername,
                 'port'         => $request->port,
-            ], $rules
+            ],
+            $rules
         );
         if ($validator->fails()) {
             $jsons = $validator->messages();
@@ -81,7 +82,8 @@ class InstallerApiController extends Controller
                 $ENV['APP_ENV'] = 'development';
                 $ENV['APP_DEBUG'] = 'false';
                 $ENV['APP_KEY'] = 'SomeRandomString';
-                $ENV['APP_URL'] = 'http://localhost';
+                $ENV['APP_URL'] = url('/');
+                $ENV['APP_KEY'] = 'base64:h3KjrHeVxyE+j6c8whTAs2YI+7goylGZ/e2vElgXT6I=';
                 $ENV['APP_BUGSNAG'] = 'true';
                 $ENV['DB_TYPE'] = $default;
                 $ENV['DB_HOST'] = $host;
@@ -89,15 +91,16 @@ class InstallerApiController extends Controller
                 $ENV['DB_DATABASE'] = $database;
                 $ENV['DB_USERNAME'] = $dbusername;
                 $ENV['DB_PASSWORD'] = $dbpassword;
+                $ENV['DB_ENGINE'] = 'InnoDB';
                 $ENV['DB_INSTALL'] = '%0%';
-                $ENV['MAIL_DRIVER'] = 'smtp';
+                $ENV['MAIL_MAILER'] = 'smtp';
                 $ENV['MAIL_HOST'] = 'mailtrap.io';
                 $ENV['MAIL_PORT'] = '2525';
                 $ENV['MAIL_USERNAME'] = 'null';
                 $ENV['MAIL_PASSWORD'] = 'null';
                 $ENV['CACHE_DRIVER'] = 'file';
                 $ENV['SESSION_DRIVER'] = 'file';
-                $ENV['QUEUE_DRIVER'] = 'sync';
+                $ENV['QUEUE_CONNECTION'] = 'sync';
                 $ENV['JWT_TTL'] = 4;
                 $ENV['FCM_SERVER_KEY'] = 'AIzaSyCyx5OFnsRFUmDLTMbPV50ZMDUGSG-bLw4';
                 $ENV['FCM_SENDER_ID'] = '661051343223';
@@ -168,9 +171,8 @@ class InstallerApiController extends Controller
             $datetime = $request->datetime;
 
             // Migrate database
-            Artisan::call('migrate', ['--force' => true]);
-            Artisan::call('db:seed', ['--force' => true]);
-            Artisan::call('key:generate');
+            (new \App\Http\Controllers\Update\SyncFaveoToLatestVersion())->sync();
+            Artisan::call('key:generate', ['--force' => true]);
             Artisan::call('jwt:secret');
             // checking requested timezone for the admin and system
             $timezones = Timezones::where('name', '=', $timezone)->first();
@@ -193,22 +195,20 @@ class InstallerApiController extends Controller
             $system->date_time_format = $date_time_format->id;
             $system->time_zone = $timezones->id;
             $version = \Config::get('app.version');
-            $version = explode(' ', $version);
-            $version = $version[1];
             $system->version = $version;
             $system->save();
 
             // Creating user
             $user = User::create([
-                        'first_name'   => $firstname,
-                        'last_name'    => $lastname,
-                        'email'        => $email,
-                        'user_name'    => $username,
-                        'password'     => Hash::make($password),
-                        'active'       => 1,
-                        'role'         => 'admin',
-                        'assign_group' => 1,
-                        'primary_dpt'  => 1,
+                'first_name'   => $firstname,
+                'last_name'    => $lastname,
+                'email'        => $email,
+                'user_name'    => $username,
+                'password'     => Hash::make($password),
+                'active'       => 1,
+                'role'         => 'admin',
+                'assign_group' => 1,
+                'primary_dpt'  => 1,
             ]);
 
             // Setting database installed status

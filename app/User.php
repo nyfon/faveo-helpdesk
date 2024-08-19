@@ -11,8 +11,8 @@ use Tymon\JWTAuth\Contracts\JWTSubject as AuthenticatableUserContract;
 
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract, AuthenticatableUserContract
 {
-    use Authenticatable,
-        CanResetPassword;
+    use Authenticatable;
+    use CanResetPassword;
 
     /**
      * The database table used by the model.
@@ -47,8 +47,8 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
         }
         if (!$pic && $value) {
             $pic = '';
-            $file = asset('uploads/profilepic/'.$value);
-            if ($file) {
+            $file = public_path('uploads/profilepic/'.$value);
+            if ($file && file_exists($file)) {
                 $type = pathinfo($file, PATHINFO_EXTENSION);
                 $data = file_get_contents($file);
                 $pic = 'data:image/'.$type.';base64,'.base64_encode($data);
@@ -63,7 +63,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function avatar()
     {
-        $related = 'App\UserAdditionalInfo';
+        $related = \App\UserAdditionalInfo::class;
         $foreignKey = 'owner';
 
         return $this->hasMany($related, $foreignKey)->select('value')->where('key', 'avatar')->first();
@@ -71,7 +71,7 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
 
     public function getOrganizationRelation()
     {
-        $related = "App\Model\helpdesk\Agent_panel\User_org";
+        $related = \App\Model\helpdesk\Agent_panel\User_org::class;
         $user_relation = $this->hasMany($related, 'user_id');
         $relation = $user_relation->first();
         if ($relation) {
@@ -174,6 +174,36 @@ class User extends Model implements AuthenticatableContract, CanResetPasswordCon
     public function getFullNameAttribute()
     {
         return $this->name();
+    }
+
+    public function getFirstNameAttribute($value)
+    {
+        return strip_tags($value);
+    }
+
+    public function getLastNameAttribute($value)
+    {
+        return strip_tags($value);
+    }
+
+    public function getUserNameAttribute($value)
+    {
+        return strip_tags($value);
+    }
+
+    public function setFirstNameAttribute($value)
+    {
+        $this->attributes['first_name'] = strip_tags($value);
+    }
+
+    public function setLastNameAttribute($value)
+    {
+        $this->attributes['last_name'] = strip_tags($value);
+    }
+
+    public function setUserNameAttribute($value)
+    {
+        $this->attributes['user_name'] = strip_tags($value);
     }
 
     /**

@@ -418,13 +418,13 @@ $data = $ConvDate[0];
                             </li>
                             <li>
                                 <?php if($conversation->is_internal) { ?>
-                                <i class="fa fa-tag bg-purple" title="Posted by System"></i>
+                                <i class="fa fa-tag bg-purple" title="<?= Lang::get('lang.posted_by_system') ?>"></i>
                                     <?php }else{ if ($role->role == 'agent' || $role->role == 'admin') { ?>
-                                    <i class="fa fa-mail-reply-all bg-yellow" title="Posted by Support Team"></i>
+                                    <i class="fa fa-mail-reply-all bg-yellow" title="<?= Lang::get('lang.posted_by_support_team') ?>"></i>
                                 <?php } elseif ($role->role == 'user') {  ?>
-                                    <i class="fa fa-user bg-aqua" title="Posted by Customer"></i>
+                                    <i class="fa fa-user bg-aqua" title="<?= Lang::get('lang.posted_by_customer') ?>"></i>
                                 <?php } else { ?>
-                                    <i class="fa fa-mail-reply-all bg-purple" title="Posted by System"></i>
+                                    <i class="fa fa-mail-reply-all bg-purple" title="<?= Lang::get('lang.posted_by_system') ?>"></i>
     <?php } }
     $attachment = App\Model\Ticket\Ticket_attachments::where('thread_id','=',$conversation->id)->first();
     if($attachment == null ) {
@@ -565,12 +565,12 @@ $data = $ConvDate[0];
                                                 imagejpeg($image, null, 80);
                                                 $data = ob_get_contents();
                                                 ob_end_clean();
-                                                $var = '<a href="'.URL::route('image', array('image_id' => $attachment->id)).'" target="_blank"><img src="data:image/jpg;base64,' . base64_encode($data)  . '"/></a>';
+                                                $var = '<a href="'.URL::route('image', ['image_id' => $attachment->id]).'" target="_blank"><img src="data:image/jpg;base64,' . base64_encode($data)  . '"/></a>';
                                                 echo '<li><span class="mailbox-attachment-icon has-img">'.$var.'</span></li>';
                                                 }
                                                 else
                                                 {
-                                                $var = '<a href="'.URL::route('image', array('image_id' => $attachment->id)).'" target="_blank">'.$attachment->name.'</a>';
+                                                $var = '<a href="'.URL::route('image', ['image_id' => $attachment->id]).'" target="_blank">'.$attachment->name.'</a>';
                                                 echo '<li>'.$var.'</li>';   
                                                 }                                            
                                             }

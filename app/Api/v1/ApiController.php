@@ -4,9 +4,10 @@ namespace App\Api\v1;
 
 use App\Http\Controllers\Agent\helpdesk\TicketController as CoreTicketController;
 use App\Http\Controllers\Controller;
-//use Illuminate\Support\Facades\Request as Value;
+use App\Http\Requests\helpdesk\CreateTicketRequest;
 use App\Http\Requests\helpdesk\TicketRequest;
 use App\Model\helpdesk\Agent\Department;
+//use Illuminate\Support\Facades\Request as Value;
 use App\Model\helpdesk\Agent\Teams;
 use App\Model\helpdesk\Manage\Help_topic;
 use App\Model\helpdesk\Manage\Sla_plan;
@@ -21,6 +22,8 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Request as Input;
+use Illuminate\Support\Str;
 
 /**
  * -----------------------------------------------------------------------------
@@ -30,6 +33,7 @@ use Illuminate\Support\Collection;
  *
  * @author Vijay Sebastian <vijay.sebastian@ladybirdweb.com>
  * @copyright (c) 2016, Ladybird Web Solution
+ *
  * @name Faveo HELPDESK
  *
  * @version v1
@@ -37,19 +41,33 @@ use Illuminate\Support\Collection;
 class ApiController extends Controller
 {
     public $user;
+
     public $request;
+
     public $ticket;
+
     public $model;
+
     public $thread;
+
     public $attach;
+
     public $ticketRequest;
+
     public $faveoUser;
+
     public $team;
+
     public $setting;
+
     public $helptopic;
+
     public $slaPlan;
+
     public $department;
+
     public $priority;
+
     public $source;
 
     /**
@@ -151,7 +169,9 @@ class ApiController extends Controller
             $core = new CoreTicketController($PhpMailController, $NotificationController);
             $this->request->merge(['body' => preg_replace('/[ ](?=[^>]*(?:<|$))/', '&nbsp;', nl2br($this->request->get('body')))]);
             $request->replace($this->request->except('token', 'api_key'));
-            $response = $core->post_newticket($request, $code, true);
+            $request_data = $request->except(['token']);
+            $response = $core->post_newticket(new CreateTicketRequest($request->except('token', 'api_key')), $code, true);
+
             //$response = $this->ticket->createTicket($user_id, $subject, $body, $helptopic, $sla, $priority, $source, $headers, $dept, $assignto, $form_data, $attach);
             //return $response;
             /*
@@ -187,8 +207,8 @@ class ApiController extends Controller
         //dd($this->request->all());
         try {
             $v = \Validator::make($this->request->all(), [
-                        'ticket_id'     => 'required|exists:tickets,id',
-                        'reply_content' => 'required',
+                'ticket_id'     => 'required|exists:tickets,id',
+                'reply_content' => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -225,12 +245,12 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'ticket_id'       => 'required|exists:tickets,id',
-                        'subject'         => 'required',
-                        'sla_plan'        => 'required|exists:sla_plan,id',
-                        'help_topic'      => 'required|exists:help_topic,id',
-                        'ticket_source'   => 'required|exists:ticket_source,id',
-                        'ticket_priority' => 'required|exists:ticket_priority,priority_id',
+                'ticket_id'       => 'required|exists:tickets,id',
+                'subject'         => 'required',
+                'sla_plan'        => 'required|exists:sla_plan,id',
+                'help_topic'      => 'required|exists:help_topic,id',
+                'ticket_source'   => 'required|exists:ticket_source,id',
+                'ticket_priority' => 'required|exists:ticket_priority,priority_id',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -262,7 +282,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'ticket_id' => 'required|exists:tickets,id',
+                'ticket_id' => 'required|exists:tickets,id',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -496,8 +516,8 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'ticket_id' => 'required',
-                        'user'      => 'required',
+                'ticket_id' => 'required',
+                'user'      => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -535,7 +555,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'search' => 'required',
+                'search' => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -602,7 +622,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'user_id' => 'required',
+                'user_id' => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -635,7 +655,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'search' => 'required',
+                'search' => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -668,7 +688,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'id' => 'required',
+                'id' => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -708,7 +728,7 @@ class ApiController extends Controller
         //dd($this->request);
         try {
             $v = \Validator::make($this->request->all(), [
-                        'url' => 'required|url',
+                'url' => 'required|url',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -717,8 +737,8 @@ class ApiController extends Controller
             }
 
             $url = $this->request->input('url');
-            if (!str_is('*/', $url)) {
-                $url = str_finish($url, '/');
+            if (!Str::is('*/', $url)) {
+                $url = Str::finish($url, '/');
             }
 
             $url = $url.'/api/v1/helpdesk/check-url?api_key='.$this->request->input('api_key').'&token='.\Config::get('app.token');
@@ -807,7 +827,7 @@ class ApiController extends Controller
             $set = $this->setting->where('id', '1')->first();
             //dd($set);
             if ($set->api_enable == 1) {
-                $key = str_random(32);
+                $key = Str::random(32);
                 $set->api_key = $key;
                 $set->save();
                 $result = $set->api_key;
@@ -1013,9 +1033,9 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'user_id'   => 'required|exists:users,id',
-                        'ticket_id' => 'required|exists:tickets,id',
-                        'body'      => 'required',
+                'user_id'   => 'required|exists:users,id',
+                'ticket_id' => 'required|exists:tickets,id',
+                'body'      => 'required',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -1092,7 +1112,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'user_id' => 'required|exists:users,id',
+                'user_id' => 'required|exists:users,id',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -1106,7 +1126,7 @@ class ApiController extends Controller
                 return response()->json(compact('error'));
             }
             //$user = \JWTAuth::parseToken()->authenticate();
-            $result = $this->user->join('tickets', function ($join) use ($id) {
+            $result = $this->user->join('tickets', function ($join) {
                 $join->on('users.id', '=', 'tickets.assigned_to')
                         ->where('status', '=', 1);
                 //->where('user_id', '=', $id);
@@ -1123,7 +1143,24 @@ class ApiController extends Controller
                     ->leftJoin('ticket_attachment', 'ticket_attachment.thread_id', '=', 'ticket_thread.id')
                     ->where('users.id', $id)
                     ->select(
-                            'ticket_priority.priority_color as priority_color', \DB::raw('substring_index(group_concat(ticket_thread.title order by ticket_thread.id asc) , ",", 1) as title'), 'tickets.duedate as overdue_date', \DB::raw('count(ticket_attachment.id) as attachment'), \DB::raw('max(ticket_thread.updated_at) as updated_at'), 'client.user_name', 'client.first_name', 'client.last_name', 'client.email', 'client.profile_pic', 'ticket_number', 'tickets.id', 'tickets.created_at', 'department.name as department_name', 'ticket_priority.priority as priotity_name', 'sla_plan.name as sla_plan_name', 'help_topic.topic as help_topic_name', 'ticket_status.name as ticket_status_name'
+                        'ticket_priority.priority_color as priority_color',
+                        \DB::raw('substring_index(group_concat(ticket_thread.title order by ticket_thread.id asc) , ",", 1) as title'),
+                        'tickets.duedate as overdue_date',
+                        \DB::raw('count(ticket_attachment.id) as attachment'),
+                        \DB::raw('max(ticket_thread.updated_at) as updated_at'),
+                        'client.user_name',
+                        'client.first_name',
+                        'client.last_name',
+                        'client.email',
+                        'client.profile_pic',
+                        'ticket_number',
+                        'tickets.id',
+                        'tickets.created_at',
+                        'department.name as department_name',
+                        'ticket_priority.priority as priotity_name',
+                        'sla_plan.name as sla_plan_name',
+                        'help_topic.topic as help_topic_name',
+                        'ticket_status.name as ticket_status_name'
                     )
                     ->orderBy('updated_at', 'desc')
                     ->groupby('tickets.id')
@@ -1149,7 +1186,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'user_id' => 'required|exists:users,id',
+                'user_id' => 'required|exists:users,id',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -1166,7 +1203,20 @@ class ApiController extends Controller
                                             ->leftJoin('user_assign_organization', 'users.id', '=', 'user_assign_organization.user_id')
                                             ->leftJoin('organization', 'user_assign_organization.org_id', '=', 'organization.id')
                                             ->select(
-                                                    'users.first_name', 'users.last_name', 'users.user_name', 'users.email', 'users.id', 'users.profile_pic', 'users.ban', 'users.active', 'users.is_delete', 'users.phone_number', 'users.ext', 'users.country_code', 'users.mobile', 'organization.name as company'
+                                                'users.first_name',
+                                                'users.last_name',
+                                                'users.user_name',
+                                                'users.email',
+                                                'users.id',
+                                                'users.profile_pic',
+                                                'users.ban',
+                                                'users.active',
+                                                'users.is_delete',
+                                                'users.phone_number',
+                                                'users.ext',
+                                                'users.country_code',
+                                                'users.mobile',
+                                                'organization.name as company'
                                             )->first()->toArray();
             $result = $this->user->join('tickets', function ($join) use ($id) {
                 $join->on('users.id', '=', 'tickets.user_id')
@@ -1206,7 +1256,7 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($this->request->all(), [
-                        'ticket_id' => 'required|exists:tickets,id',
+                'ticket_id' => 'required|exists:tickets,id',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -1234,7 +1284,39 @@ class ApiController extends Controller
             //$select = 'users.email','users.user_name','users.first_name','users.last_name','tickets.id','ticket_number','num_sequence','user_id','priority_id','sla','max_open_ticket','captcha','status','lock_by','lock_at','source','isoverdue','reopened','isanswered','is_deleted', 'closed','is_transfer','transfer_at','reopened_at','duedate','closed_at','last_message_at';
 
             $result = $response->addSelect(
-                            'users.email', 'users.user_name', 'users.first_name', 'users.last_name', 'tickets.id', 'ticket_number', 'user_id', 'ticket_priority.priority_id', 'ticket_priority.priority as priority_name', 'department.name as dept_name', 'ticket_status.name as status_name', 'sla_plan.name as sla_name', 'ticket_source.name as source_name', 'sla_plan.id as sla', 'ticket_status.id as status', 'lock_by', 'lock_at', 'ticket_source.id as source', 'isoverdue', 'reopened', 'isanswered', 'is_deleted', 'closed', 'reopened_at', 'duedate', 'closed_at', 'tickets.created_at', 'tickets.updated_at', 'ticket_priority.priority_color as priority_color', 'help_topic.id as helptopic_id', 'help_topic.topic as helptopic_name', 'sla_plan.grace_period as grace_period')->first();
+                'users.email',
+                'users.user_name',
+                'users.first_name',
+                'users.last_name',
+                'tickets.id',
+                'ticket_number',
+                'user_id',
+                'ticket_priority.priority_id',
+                'ticket_priority.priority as priority_name',
+                'department.name as dept_name',
+                'ticket_status.name as status_name',
+                'sla_plan.name as sla_name',
+                'ticket_source.name as source_name',
+                'sla_plan.id as sla',
+                'ticket_status.id as status',
+                'lock_by',
+                'lock_at',
+                'ticket_source.id as source',
+                'isoverdue',
+                'reopened',
+                'isanswered',
+                'is_deleted',
+                'closed',
+                'reopened_at',
+                'duedate',
+                'closed_at',
+                'tickets.created_at',
+                'tickets.updated_at',
+                'ticket_priority.priority_color as priority_color',
+                'help_topic.id as helptopic_id',
+                'help_topic.topic as helptopic_name',
+                'sla_plan.grace_period as grace_period'
+            )->first();
 //            $resultticket_source
             $result2 = $result;
             $result = $result->toArray();
@@ -1344,10 +1426,12 @@ class ApiController extends Controller
     public function addCollaboratorForTicket()
     {
         try {
-            $v = \Validator::make(\Input::get(), [
-                        'email'     => 'required|email|unique:users',
-                        'ticket_id' => 'required',
-                            ]
+            $v = \Validator::make(
+                Input::all(),
+                [
+                    'email'     => 'required|email|unique:users',
+                    'ticket_id' => 'required',
+                ]
             );
             if ($v->fails()) {
                 $error = $v->messages();
@@ -1375,9 +1459,11 @@ class ApiController extends Controller
     public function getCollaboratorForTicket()
     {
         try {
-            $v = \Validator::make(\Input::get(), [
-                        'ticket_id' => 'required',
-                            ]
+            $v = \Validator::make(
+                Input::all(),
+                [
+                    'ticket_id' => 'required',
+                ]
             );
             if ($v->fails()) {
                 $error = $v->messages();
@@ -1405,10 +1491,12 @@ class ApiController extends Controller
     public function deleteCollaborator()
     {
         try {
-            $v = \Validator::make(\Input::get(), [
-                        'ticketid' => 'required',
-                        'email'    => 'required',
-                            ]
+            $v = \Validator::make(
+                Input::all(),
+                [
+                    'ticketid' => 'required',
+                    'email'    => 'required',
+                ]
             );
             if ($v->fails()) {
                 $result = $v->messages();
@@ -1476,11 +1564,11 @@ class ApiController extends Controller
                     ->value('my_ticket');
             $depend = collect([['name' => 'unassigned', 'count' => $unassigned], ['name' => 'mytickets', 'count' => $mytickets]]);
             $collection = $statuses->merge($depend);
-            $result = ['departments'   => $department, 'sla'           => $sla, 'staffs'        => $staff, 'teams'         => $team,
-                'priorities'           => $priority, 'helptopics'    => $helptopic,
-                'status'               => $status,
-                'sources'              => $source,
-                'tickets_count'        => $collection, ];
+            $result = ['departments' => $department, 'sla' => $sla, 'staffs' => $staff, 'teams' => $team,
+                'priorities'         => $priority, 'helptopics' => $helptopic,
+                'status'             => $status,
+                'sources'            => $source,
+                'tickets_count'      => $collection, ];
 
             return response()->json(compact('result'));
 //            $result     = ['departments' => $department, 'sla'         => $sla, 'staffs'      => $staff, 'teams'       => $team,
@@ -1538,8 +1626,8 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make($request->all(), [
-                        'email'    => 'required|email|unique:users',
-                        'password' => 'required|min:6',
+                'email'    => 'required|email|unique:users',
+                'password' => 'required|min:6',
             ]);
             if ($v->fails()) {
                 $error = $v->errors();
@@ -1573,17 +1661,18 @@ class ApiController extends Controller
     {
         try {
             $v = \Validator::make(
-                            $this->request->all(), [
-                        'username'   => 'required|unique:users,user_name',
-                        'first_name' => 'required',
-                            ]
+                $this->request->all(),
+                [
+                    'username'   => 'required|unique:users,user_name',
+                    'first_name' => 'required',
+                ]
             );
             if ($v->fails()) {
                 $error = $v->messages();
 
                 return response()->json(compact('error'));
             }
-            $str = str_random(8);
+            $str = Str::random(8);
             $array = ['password' => $str, 'password_confirmation' => $str, 'email' => $this->request->input('email'), 'full_name' => $this->request->input('first_name')];
             $all = $this->request->input();
             $merged = $array + $all;

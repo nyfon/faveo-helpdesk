@@ -13,6 +13,11 @@ use RecursiveIteratorIterator;
 
 class SettingsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'roles']);
+    }
+
     public function settingsIcon()
     {
         return ' <div class="col-md-2 col-sm-6">
@@ -20,11 +25,11 @@ class SettingsController extends Controller
                         <div class="settingdivblue">
                             <a href="'.url('storage').'">
                                 <span class="fa-stack fa-2x">
-                                    <i class="fa fa-save fa-stack-1x"></i>
+                                    <i class="fas fa-save fa-stack-1x"></i>
                                 </span>
                             </a>
                         </div>
-                        <p class="box-title" >'.Lang::get('storage::lang.storage').'</p>
+                        <div class="text-center text-sm">'.Lang::get('storage::lang.storage').'</div>
                     </div>
                 </div>';
     }
@@ -92,11 +97,13 @@ class SettingsController extends Controller
     public function directories($root = '')
     {
         if ($root == '') {
-            $root = base_path();
+            $root = storage_path();
         }
 
         $iter = new RecursiveIteratorIterator(
-                new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST, RecursiveIteratorIterator::CATCH_GET_CHILD // Ignore "Permission denied"
+            new RecursiveDirectoryIterator($root, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST,
+            RecursiveIteratorIterator::CATCH_GET_CHILD // Ignore "Permission denied"
         );
 
         $paths = [$root];
